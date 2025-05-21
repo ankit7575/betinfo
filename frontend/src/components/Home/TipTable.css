@@ -1,0 +1,155 @@
+/* Dark Mode Base */
+body {
+  background-color: #121212;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Page Title */
+.white {
+  color: #0ff;
+  font-weight: bold;
+  text-shadow: 0 0 10px #0ff;
+}
+
+/* Buttons */
+.btn-group .btn {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: #0ff;
+  border-color: #0ff;
+  color: #000;
+}
+
+.btn-outline-primary {
+  border-color: #0ff;
+  color: #0ff;
+  background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0ff;
+  color: #000;
+}
+
+.btn-primary:hover {
+  background-color: #00e0e0;
+  border-color: #00e0e0;
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+}
+
+/* Table Wrapper */
+.table-responsive {
+  overflow-x: auto;
+  animation: fadeInUp 0.4s ease-in-out;
+}
+
+/* Table Styles */
+.table {
+  background-color: #1a1a1a;
+  color: #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.table th,
+.table td {
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid #2a2a2a;
+  padding: 0.75rem;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.5s ease;
+}
+
+.table-dark th {
+  background-color: #222;
+  color: #0ff;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Row Hover with border glow */
+@keyframes borderGlow {
+  0% {
+    border-color: #0ff;
+    box-shadow: 0 0 6px #0ff;
+  }
+  25% {
+    border-color: #0f0;
+    box-shadow: 0 0 6px #0f0;
+  }
+  50% {
+    border-color: #f0f;
+    box-shadow: 0 0 6px #f0f;
+  }
+  75% {
+    border-color: #ff0;
+    box-shadow: 0 0 6px #ff0;
+  }
+  100% {
+    border-color: #0ff;
+    box-shadow: 0 0 6px #0ff;
+  }
+}
+
+
+
+/* View Tip Button */
+.btn-primary.view-tip {
+  padding: 6px 16px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #0ff, #00e0e0);
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+}
+
+.btn-primary.view-tip:hover {
+  background: linear-gradient(135deg, #00e0e0, #0ff);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+  transform: scale(1.05);
+}
+
+/* Fade-in Animation on Load */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table tbody tr {
+  animation: fadeInUp 0.3s ease-in-out;
+}
+
+/* Optional glowing border for the entire table */
+.table.glow-border {
+  animation: borderGlow 4s infinite ease-in-out;
+  border: 2px solid #0ff;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.2);
+}
+
+/* No Matches Found */
+.white::after {
+  content: " 🏏";
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}

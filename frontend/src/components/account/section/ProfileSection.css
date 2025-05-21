@@ -1,0 +1,52 @@
+/* Container for the profile section */
+.profile-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 20px auto;
+  }
+  
+  /* Profile Header */
+  .profile-header h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* Table style */
+  .profile-details table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .profile-details table td {
+    padding: 12px;
+    text-align: left;
+    font-size: 1rem;
+    color: #555;
+  }
+  
+  .profile-label {
+    font-weight: bold;
+    color: #333;
+  }
+  
+  /* Add background color to table rows */
+  .profile-details table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .profile-details table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* For a more polished look */
+  .profile-container .profile-details {
+    padding: 10px;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+  }
+  

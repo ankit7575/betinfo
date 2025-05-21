@@ -1,0 +1,207 @@
+.coins-container {
+    margin: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .redeem-coins-section {
+    margin-bottom: 20px;
+  }
+  
+  .select-coin-container {
+    margin-bottom: 10px;
+  }
+  
+  .select-coin-container label {
+    font-size: 14px;
+  }
+  
+  .redeem-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .redeem-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .coins-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .coins-table th,
+  .coins-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  
+  .coins-table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .coins-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .coins-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .coins-table td {
+    color: #555;
+    font-size: 14px;
+  }
+  
+  .coins-table td,
+  .coins-table th {
+    border: 1px solid #ddd;
+  }
+  
+  .coins-table .used {
+    background-color: #e9ecef; /* Grey for used coins */
+  }
+  
+  .coins-table .unused {
+    background-color: #d4edda; /* Greenish for unused coins */
+  }
+  
+  .coins-table button {
+    padding: 5px 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .coins-table button:hover {
+    background-color: #218838;
+  }
+  
+  /* Toggle Button Styles */
+  .toggle-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .toggle-button {
+    padding: 10px 20px;
+    background-color: #f1f1f1;
+    color: #333;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 0 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .toggle-button:hover {
+    background-color: #ddd;
+  }
+  
+  .toggle-button.active {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .coin-message {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #ffe6e6;
+    color: #b30000;
+    border: 1px solid #ffcccc;
+    border-radius: 4px;
+    white-space: pre-line;
+  }
+  
+  .view-plan-button {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .view-plan-button:hover {
+    background-color: #45a049;
+  }
+  
+  .plan-container {
+    margin-bottom: 20px;
+  }
+  
+  .plan-details {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ddd;
+  }
+  
+  .coin-message.error {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .select-coin-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.select-coin-container select {
+  padding: 8px 12px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.note {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+
+.countdown-timer-box {
+  background: #1a1a1a;
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 2px solid #0ff;
+  color: #0ff;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.countdown-timer {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  color: #fff;
+  animation: pulseTime 1.2s infinite alternate;
+}
+
+@keyframes pulseTime {
+  from {
+    color: #0ff;
+    text-shadow: 0 0 5px #0ff;
+  }
+  to {
+    color: #fff;
+    text-shadow: 0 0 10px #00ffff;
+  }
+}

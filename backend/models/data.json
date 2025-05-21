@@ -1,0 +1,77 @@
+{
+    "eventId": "event123",
+    "eventName": "Team A vs Team B",
+    "tournamentId": "tournament456",
+    "competitionName": "Championship League",
+    "sportName": "Cricket",
+    "matchRunners": [
+      {
+        "runnerName": "Team A",
+        "runnerId": "runner1"
+      },
+      {
+        "runnerName": "Team B",
+        "runnerId": "runner2"
+      }
+    ],
+    "markets": [
+      {
+        "marketId": "1.234567",
+        "marketName": "Match Odds"
+      }
+    ],
+    
+    "openDate": "2025-05-04T12:00:00.000Z",
+    "status": "OPEN",
+    "scoreData": {
+      "score": "150/3",
+      "score2": "145/5",
+      "wicket": "3",
+      "wicket2": "5",
+      "ballsdone": 90,
+      "ballsdone2": 88,
+      "team1": "Team A",
+      "team2": "Team B"
+    },
+    "adminBetfairOdds": [
+      {
+        "selectionId": 1,
+        "runnerName": "Team A",
+        "odds": { "back": 2.0, "lay": 2.2 },
+        "Ammount": { "back": 1000, "lay": 800 },
+        "Profit": { "back": 500, "lay": 300 },
+        "layingHistory": [
+          {
+            "odds": { "back": 2.1, "lay": 2.3 },
+            "Ammount": { "back": 500, "lay": 600 },
+            "Profit": { "back": 200, "lay": 100 },
+            "timestamp": "2025-05-04T10:00:00.000Z"
+          }
+        ]
+      }
+    ],
+    "betfairOdds": [
+      {
+        "selectionId": 1,
+        "runnerName": "Team A",
+        "lastPriceTraded": 2.1,
+        "availableToBack": [
+          { "price": 2.0, "size": 100 }
+        ],
+        "availableToLay": [
+          { "price": 2.2, "size": 150 }
+        ],
+        "oddsHistory": [
+          {
+            "availableToBack": [{ "price": 2.1, "size": 120 }],
+            "availableToLay": [{ "price": 2.3, "size": 100 }],
+            "timestamp": "2025-05-04T09:00:00.000Z"
+          }
+        ]
+      }
+    ],
+    "openingbalance": 1000,
+    "adminopeningbalance": 200000
+    
+  }
+  

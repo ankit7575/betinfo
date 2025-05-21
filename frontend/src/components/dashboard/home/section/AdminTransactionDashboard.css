@@ -1,0 +1,58 @@
+.admin-transaction-dashboard {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9f9fc;
+    padding-bottom: 2rem;
+    border-radius: 10px;
+  }
+  
+  .dashboard-header h2 {
+    font-weight: 600;
+    color: #343a40;
+  }
+  
+  .table thead th {
+    vertical-align: middle;
+  }
+  
+  .table td, .table th {
+    vertical-align: middle;
+    font-size: 0.95rem;
+  }
+  
+  @media (max-width: 768px) {
+    .table thead {
+      display: none;
+    }
+  
+    .table tbody td {
+      display: block;
+      width: 100%;
+      text-align: right;
+      position: relative;
+      padding-left: 50%;
+      white-space: pre-wrap;
+      border-top: 1px solid #dee2e6;
+    }
+  
+    .table tbody td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 1rem;
+      top: 0.75rem;
+      font-weight: bold;
+      text-align: left;
+      white-space: nowrap;
+    }
+  
+    .table tr {
+      margin-bottom: 1rem;
+      display: block;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 0.5rem;
+    }
+  }
+  
+  .dropdown-item{
+    color: black;
+  }

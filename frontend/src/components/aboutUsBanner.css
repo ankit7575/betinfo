@@ -1,0 +1,34 @@
+.about-section {
+    padding: 108px 10%;
+    background: linear-gradient(to top left,  #ffffff 80%,  #3F8B98 120%);
+    min-height: 90vh;
+
+}
+
+  .about-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .highlight {
+    color: #4A769D; /* Matching the Astafin theme */
+  }
+
+  .about-description {
+    font-size: 20px;
+    color: rgba(139, 101, 28, 1);
+    line-height: 1.8;
+    font-family: Montserrat;
+    text-align: justify;
+  }
+
+  .image-container {
+    text-align: center;
+    align-content: center;
+  }
+
+  .about-image {
+    max-width: 100%;
+    height: auto;
+  }

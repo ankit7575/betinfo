@@ -1,0 +1,682 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+a {
+  text-decoration: none !important;
+}
+
+body{
+  background-color: black;
+}
+
+@font-face {
+  font-family: 'ITC Benguiat Std';
+  src: url('./assets/fonts/ITC-Benguiat-Std.OTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+@font-face {
+  font-family: 'ITC Benguiat Std Bold';
+  src: url('./assets/fonts/BenguiatStd-Bold.ttf') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('./assets/fonts/Montserrat.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Montserrat Bold';
+  src: url('./assets/fonts/Montserrat-Bold.ttf') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
+
+@font-face {
+  font-family: 'ITC Benguiat Std Book';
+  src: url('./assets/fonts/ITCBenguiatStdBook.OTF') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
+
+
+.white{
+  color: white;
+}
+.footer a {
+  color: white;
+  transition: color 0.3s ease;
+}
+
+.footer a:hover {
+  color: #C7A55D; /* Bootstrap primary */
+  text-decoration: none;
+}
+
+.footer .social-icons {
+  color: white;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 50%;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.footer .social-icons:hover {
+  background-color: #C7A55D;
+  color: #fff;
+  border-color: #C7A55D;
+}
+
+.footer-logo img {
+  max-width: 150px;
+}
+
+.address-list {
+  list-style: none;
+  padding: 0;
+}
+
+.address-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.footer {
+  background: black 0% 0% no-repeat padding-box !important;
+  padding: 40px 80px 5px 80px;
+  font-family: Arial, sans-serif;
+  color: white;
+}
+.FooterBottom{
+  background: #F5F2E9 0% 0% no-repeat padding-box !important;
+}
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.footer-logo {
+  max-width: 300px;
+}
+
+.footer-logo img {
+  width: 100%;
+}
+
+.footer-logo p {
+  font-size: 14px;
+  color: white;
+  margin: 10px 0 30px;
+}
+
+.social-icons {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.icon {
+  font-size: 20px;
+  color: #C7A55D;
+  cursor: pointer;
+}
+
+.icon:hover {
+  color: white;
+}
+
+.footer-links h3,
+.footer-address h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 5px 0 20px;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links ul li {
+  font-size: 14px;
+  color: #666;
+  margin: 5px 0 20px;
+  cursor: pointer;
+}
+
+.footer-links ul li:hover {
+  color: #333;
+}
+
+.footer-address {
+  max-width: 250px;
+}
+
+.footer-address p {
+  font-size: 14px;
+  color:white;
+}
+
+.footer-bottom {
+  margin-top: 20px;
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.footer-bottom p {
+  font-size: 14px;
+  color: white;
+}
+
+/* simple steps section css */
+.steps-section {
+  /* background: linear-gradient(to right, white, #C7A55D); */
+  background: linear-gradient(to top right, #ffffff 80%, #C7A55D 120%);
+
+  padding: 80px 100px;
+  text-align: center;
+}
+
+.steps-title {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: bold;
+  color: #CEBF93;
+  margin-bottom: 60px;
+  font-family: "ITC Benguiat Std Bold", sans-serif;
+
+}
+
+.steps-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 70rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .steps-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.step-card {
+  background-color: #3F8B98;
+  color: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.step-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  width: 100px;
+  min-height: 150px;
+  max-height: 150px;
+}
+
+.step-title {
+  font-family: 'Montserrat';
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.step-description {
+  font-size: 13px;
+  margin-top: 0.5rem;
+  font-family: 'Montserrat';
+}
+
+.call-to-action {
+  font-family: 'Montserrat';
+  display: flex;
+  flex-direction: row; /* Default: Horizontal layout */
+  justify-content: center;
+  align-items: center;
+  background-color: #3F8B98;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  margin: 2.5rem auto 0;
+  gap: 1rem;
+  max-width: 70rem;
+  text-align: center;
+}
+.call-to-action button {
+  background-color: #fff;
+  color: #3F8B98;
+}
+
+/* Style adjustments for mobile screens (below 768px) */
+@media (max-width: 768px) {
+  .call-to-action {
+    flex-direction: column; /* Stack items vertically */
+    text-align: center;
+    padding: 1rem; /* Reduce padding */
+    gap: 0.75rem;
+  }
+
+  .call-to-action span {
+    font-size: 1rem; /* Adjust font size for readability */
+  }
+
+  .call-to-action button {
+    width: 100%; /* Make button full width */
+    max-width: 300px; /* Prevent excessive width */
+  }
+}
+.footer-links li {
+  list-style: none; /* Remove bullet points */
+}
+
+.footer-links a {
+  text-decoration: none; /* Remove underline */
+  color: #666666; /* Black text */
+}
+
+/* Asset management CSS */
+.asset-management-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #3F8B98;
+  padding: 0px 100px 80;
+  color: white;
+  overflow: hidden;
+}
+
+.asset-management-container {
+  max-width: 80rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .asset-management-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.asset-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #CEBF93;
+  margin-bottom: 0.5rem;
+  font-family: "ITC Benguiat Std Bold", sans-serif;
+}
+
+.asset-description {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-bottom: 60px;
+  font-family: 'Montserrat';
+}
+
+.asset-feature {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 60px;
+}
+
+.feature-icon {
+  font-size: 2rem;
+  width: 75px;
+  margin-right: 40px;
+  min-height: 70px;
+  max-height: 70px;
+}
+.feature-text{
+  align-items: center;
+  font-family: 'Montserrat Bold';
+}
+.feature-text h3 {
+  font-size: 1.125rem;
+  font-weight: bold;
+}
+
+.feature-text p {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  font-family: 'Montserrat';
+}
+
+.assesment-right {
+  position: relative;
+}
+
+
+@media (max-width: 768px) {
+  .assesment-right {
+    display: none;
+  }
+}
+
+.dashboard-image{
+  position: absolute;
+  width: 60rem;
+  bottom: -60px;
+}
+/*Card about us*/
+@media (max-width: 768px) {
+  .responsive-col {
+    max-width: 90vw !important;
+    padding: 0%;
+  }
+  .ResponsiveCardAboutUS{
+    max-width: 90vw !important;
+  }
+
+  .responsive-card {
+    max-width: 350px !important;
+    padding: 20px !important;
+  }
+}
+
+
+/* Choose Smart CSS */
+.comparison-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #ffffff, #e8eff5);
+  padding: 50px 160px;
+  overflow: hidden;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.comparison-container {
+padding: 90px;
+}
+.comparison-container2 {
+  background-color: #3f8b98;
+  padding: 90px;
+  }
+
+.comparison-title {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #3F8B98;
+  text-align: left;
+  margin-bottom: 1.5rem;
+  font-family: "ITC Benguiat Std Bold", sans-serif;
+}
+.comparison-title2 {
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: white;
+  text-align: left;
+  margin-bottom: 0;
+  font-family: "ITC Benguiat Std Bold", sans-serif;
+}
+.comparison-title3 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: white;
+  text-align: left;
+  margin-bottom: 0;
+  font-family: "ITC Benguiat Std Bold", sans-serif;
+}
+.container{
+  overflow: hidden;
+
+}
+.container-fluid{
+  overflow: hidden;
+
+}
+.table-wrapper {
+  background: transparent;
+  padding: 1.5rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  background: #FFFFFF 0% 0% no-repeat padding-box;
+box-shadow: inset 0px 3px 6px #00000029, 3px 3px 6px #00000029;
+border-radius: 27px;
+opacity: 1;
+}
+
+.table-header {
+  font-weight: bold;
+  text-align: left;
+  font-size: 1rem;
+  color: #3F8B98;
+  border-bottom: 1px solid #707070;
+  background: transparent;
+  font-family: 'Montserrat Bold' !important;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-size: 1rem;
+  border-bottom: 1px solid #707070;
+}
+
+.category-column {
+
+  color: #3F8B98;
+  text-align-last: center;
+font-size: 1rem;
+  align-content: center;
+  font-family: 'Montserrat Bold';
+
+}
+
+.highlight-column {
+  background: #E6DFC7;
+  font-weight: bold;
+  /* display: flex; */
+text-align-last: center;
+font-size: 1.2rem;
+    align-content: center;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+  font-family: 'Montserrat Bold';
+}
+
+.normal-column{
+  align-items: start;
+  display: flex;
+  /* justify-content: left; */
+  font-weight: bold;
+  /* padding-left: 12px !important; */
+}
+
+.table-header .highlight-column{
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  text-align: left;
+  padding-left: 25px !important;
+  font-family: 'Montserrat Bold';
+}
+
+.icon-img {
+  width: 20px;
+  margin-right: 10px;
+  float: left !important;
+  margin-left: 15px;
+}
+.last-row{border-bottom: 0px !important;}
+.last-record{
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+@media (max-width: 1024px) {
+  .comparison-section {
+    padding: 40px 50px;
+  }
+}
+@media (min-width: 769px) {
+  .mobile-table {
+    display: none; /* Hide mobile table on desktop */
+  }
+}
+
+@media (max-width: 768px) {
+  .table-header {
+    display: none; /* Hide the table headers */
+  }
+
+  .table-row {
+    display: none; /* Hide the desktop rows */
+  }
+
+  /* Mobile Table */
+  .mobile-table {
+    display: block;
+    font-family: 'Montserrat';
+  }
+
+  .mobile-row {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    /* border: 1px solid #ddd; */
+  }
+
+  .category {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #3F8B98;
+    margin-bottom: 8px;
+  }
+
+  .mobile-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    padding: 8px 0;
+  }
+
+  .label {
+    font-weight: bold;
+    color: #3F8B98;
+    flex: 1;
+  }
+
+  .value {
+    flex: 2;
+    text-align: right;
+  }
+
+  .highlight-column {
+    background: #CEBF93;
+    padding: 5px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  .normal-column {
+    font-weight: bold;
+    padding: 5px;
+  }
+}
+
+.comparison-section {
+  text-align: left;
+}
+
+.table-header .ant-col,
+.table-row .ant-col {
+  text-align: left;
+}
+
+.table-header .highlight-column,
+.table-row .highlight-column,
+.table-header .normal-column,
+.table-row .normal-column,
+.table-row .category-column {
+  text-align: left;
+}
+
+.mobile-row .category,
+.mobile-item .label,
+.mobile-item .value {
+  text-align: left;
+}
+
+
+.container-fluid{
+  padding-right: 0px !important;
+  padding-left: 0px !important;
+  margin-right: 0px !important;
+  margin-left: 0px !important;
+}
+.newcolor{
+  color: #3F8B98;
+}
+
+.address-list {
+  display: flex;
+  align-items: flex-start; /* Align icon and text at the top */
+  gap: 8px; /* Space between icon and text */
+  list-style: none; /* Remove default bullets */
+  padding: 0; /* Remove default padding */
+}
+
+.address-list li:first-child {
+  flex-shrink: 0; /* Prevent icon from affecting text alignment */
+}
+
+.address-list li:last-child {
+  flex: 1; /* Allow text to take full width */
+  max-width: 400px; /* Adjust as needed */
+  line-height: 1.5; /* Better spacing */
+}
+
+
+.coinbox{
+background: #8B651C 0% 0% no-repeat padding-box;
+border-radius: 8px;
+opacity: 1;
+padding: 25px;
+place-self: center;
+}
+
+.list-unstyled {
+  padding: 25px 0px 25px 0px;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem; /* Space between boxes */
+  place-content: center;
+}
+
+
+
+.coinbox:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+
+
+
+.active-tab {
+  background-color: #3f8b98;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}

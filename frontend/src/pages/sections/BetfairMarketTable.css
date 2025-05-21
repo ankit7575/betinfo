@@ -1,0 +1,132 @@
+@keyframes borderPulse {
+  0% {
+    border-color: #0ff;
+    box-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
+  }
+  25% {
+    border-color: #ff0;
+    box-shadow: 0 0 4px rgba(255, 255, 0, 0.3);
+  }
+  50% {
+    border-color: #f0f;
+    box-shadow: 0 0 4px rgba(255, 0, 255, 0.3);
+  }
+  75% {
+    border-color: #0f0;
+    box-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+  }
+  100% {
+    border-color: #0ff;
+    box-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
+  }
+}
+
+/* Apply this animation to the market header */
+.market-header {
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #0ff;
+  animation: borderPulse 4s infinite ease-in-out;
+  padding: 0.5rem 1rem;
+  background: #1c1c1c;
+}
+
+.market-header h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0;
+  color: #0ff;
+}
+
+.market-header span {
+  font-size: 1rem;
+  color: #aaa;
+}
+
+.market-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  color: #ddd;
+}
+
+.market-table th,
+.market-table td {
+  padding: 0.6rem;
+  text-align: center;
+  border: 1px solid #333;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.market-table th {
+  background-color: #222;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #0ff;
+}
+
+.runner-name-cell {
+  text-align: left;
+  padding-left: 0.75rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.cell-odds {
+  min-width: 60px;
+  padding: 0.25rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #444;
+  animation: borderPulse 6s infinite ease-in-out;
+}
+
+.cell-back {
+  background-color: #0f2f40;
+  color: #0ff;
+}
+
+.cell-lay {
+  background-color: #401f1f;
+  color: #f88;
+}
+
+.cell-odds:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+}
+
+.pending-odds {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.pending-stake {
+  font-size: 0.8rem;
+  color: #ccc;
+  margin-top: 2px;
+  display: block;
+}
+
+.text-center {
+  text-align: center;
+  color: #888;
+  font-size: 0.95rem;
+  padding: 1rem;
+}
+.highlight {
+  animation: flashUpdate 0.5s ease-in-out;
+}
+
+@keyframes flashUpdate {
+  0% {
+    background-color: #ffff99;
+  }
+  100% {
+    background-color: transparent;
+  }
+}

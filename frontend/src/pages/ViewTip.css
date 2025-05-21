@@ -1,0 +1,223 @@
+body {
+  background-color: black;
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+
+/* Left-right bounce animation */
+@keyframes bounceLR {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(30px); /* Move right */
+  }
+}
+
+/* Auto color-changing animation */
+@keyframes colorChange {
+  0% {
+    color: #e74c3c; /* red */
+  }
+  25% {
+    color: #f1c40f; /* yellow */
+  }
+  50% {
+    color: #2ecc71; /* green */
+  }
+  75% {
+    color: #3498db; /* blue */
+  }
+  100% {
+    color: #9b59b6; /* purple */
+  }
+}
+.card-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.card-title.text-primary {
+  color: #007bff;
+}
+
+.card-title.text-warning {
+  color: #ffc107;
+}
+
+.card-title.text-info {
+  color: #17a2b8;
+}
+
+.card-title.text-success {
+  color: #73bbee;
+}
+
+button {
+  font-size: 1.2rem;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f9f9f9;
+}
+
+.table-bordered {
+  border: 2px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+embed-responsive {
+  position: relative;
+}
+
+
+
+position-absolute {
+  top: 0;
+  left: 0;
+}
+
+input[type="number"] {
+  font-size: 1.2rem;
+}
+
+
+/* For Back Odds, Back Amount, Back Profit */
+.back-odds, .back-amount, .back-profit {
+  color: #007bff; /* Back values in blue */
+}
+
+.back-profit.positive {
+  color: #73bbee; /* Green for positive profit */
+}
+
+.back-profit.negative {
+  color: #faa9bc; /* Red for negative profit */
+}
+
+/* For Lay Odds, Lay Amount, Lay Profit */
+.lay-odds, .lay-amount, .lay-profit {
+  color: #ffc107; /* Lay values in yellow */
+}
+
+.lay-profit.positive {
+  color: #73bbee; /* Green for positive profit */
+}
+
+.lay-profit.negative {
+  color: #faa9bc; /* Red for negative profit */
+}
+
+/* Highlight for Profit/Loss columns */
+.table td.positive {
+  font-weight: bold !important;
+  color: #73bbee  !important;
+}
+
+.table td.negative {
+  font-weight: bold;
+  color: #faa9bc;
+}
+
+/* Runner - Always highlighted with blue */
+.Runner {
+  font-weight: bold !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Conditional Styling for Odds1 (Back Odds) */
+.Odds1 {
+  font-weight: bold !important;
+  background-color: #73bbee !important; /* Green for Back Odds */
+  color: black !important;
+}
+
+/* Conditional Styling for Odds2 (Lay Odds) */
+.Odds2 {
+  font-weight: bold !important;
+  background-color: #faa9bc !important; /* Red for Lay Odds */
+  color: black !important;
+}
+
+/* Conditional Styling for Amount1 (Back Amount) */
+.Amount1 {
+  font-weight: bold !important;
+  background-color: #73bbee !important; /* Green for Back Amount */
+  color: black !important;
+}
+
+/* Conditional Styling for Amount2 (Lay Amount) */
+.Amount2 {
+  font-weight: bold !important;
+  background-color: #faa9bc !important; /* Red for Lay Amount */
+  color: black !important;
+}
+
+/* Conditional Styling for Profit1 (Back Profit) */
+.Profit1 {
+  font-weight: bold !important;
+  background-color: #73bbee !important; /* Green for Back Profit */
+  color: black !important;
+}
+
+/* Conditional Styling for Profit2 (Lay Profit) */
+.Profit2 {
+  font-weight: bold !important;
+  background-color: #faa9bc !important; /* Red for Lay Profit */
+  color: black !important;
+}
+
+/* Highlight the Live Batting Tips card */
+.card.live-tips-card {
+  border: 2px solid #007bff;
+  background-color: #f0f8ff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+.card.live-tips-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.5);
+}
+
+/* Make the table container scrollable with a smooth scroll */
+.live-tips-card .table-container {
+  max-height: 300px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+/* Optional: Sticky table header inside scrolling area */
+.live-tips-card .table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #343a40;
+  color: #fff;
+  z-index: 1;
+}
+
+/* Optional: Custom header title styling */
+.live-tips-card h2 {
+  color: #0056b3;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}

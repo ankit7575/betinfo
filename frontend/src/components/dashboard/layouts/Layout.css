@@ -1,0 +1,253 @@
+/* Layout */
+.layout {
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+/* Sidebar Container */
+.sidebar {
+  width: 350px;
+  height: 100vh;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  transition: transform 0.4s ease-in-out, width 0.3s ease-in-out, background 0.3s;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Logo */
+.logo-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.logo {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+}
+
+/* Sidebar Heading */
+.sidebar h2 {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+  color: white;
+}
+
+/* Menu Styling */
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu li {
+  margin-bottom: 12px;
+}
+
+.menu a {
+  display: block;
+
+  font-size: 16px;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+  font-weight: bold;
+}
+
+.category-selected{
+  padding: 10px 0px 18px 0px;
+}
+.subcategory-item{
+  background-color: #a777e3;
+}
+.subcategory-item:active{
+  background: rgba(255, 255, 255, 0.2);
+}
+.menu a.active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Dropdown Styling */
+.dropdown {
+  margin-bottom: 10px;
+}
+
+.dropdown-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.dropdown-title:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+.dropdown-title .arrow {
+  transition: transform 0.3s ease-in-out;
+}
+
+.dropdown-title.open .arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 15px;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: background 0.3s, transform 0.2s;
+  color: black;
+}
+
+
+
+/* Improved List Styling */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul li {
+  padding: 10px;
+  border-radius: 6px;
+  transition: background 0.3s, transform 0.2s;
+  cursor: pointer;
+}
+
+ul li:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.02);
+}
+
+/* Toggle Button */
+.sidebar-toggle {
+  display: none;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, transform 0.2s;
+  z-index: 1000;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  background-color: #f4f4f4;
+  overflow-y: auto;
+  margin-left: 350px;
+}
+
+.content {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.arrow {
+  float: inline-end;
+}
+.navbar{
+  display: block;
+}
+.menu-category{
+  background: rgba(255, 255, 255, 0.2);
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 999;
+  }
+  .navbar{
+    margin-top: 10%;
+  }
+  .sidebar-toggle:hover{
+    background: linear-gradient(135deg, #6e8efb, #a777e3); /* Restore color when open */
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    background: linear-gradient(135deg, #6e8efb, #a777e3); /* Restore color when open */
+  }
+
+  .sidebar-toggle {
+    display: block;
+    background: linear-gradient(135deg, #6e8efb, #a777e3); /* Restore color when open */
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
+    border-radius: 0;
+  }
+
+  .main-content {
+    margin-left: 0;
+    margin-top: 10%;
+  }
+
+  .menu a {
+    padding: 10px;
+  }
+
+  .dropdown-title {
+    padding: 10px;
+  }
+
+  .dropdown-item {
+    padding: 6px 8px;
+  }
+
+  .logo {
+    max-width: 120px;
+  }
+
+  .referral-number {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    margin-top: 8%;
+  }
+}

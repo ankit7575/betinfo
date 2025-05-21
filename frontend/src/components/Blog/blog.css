@@ -1,0 +1,117 @@
+#blog-background{
+  background: #3f8b983a 0% 0% no-repeat padding-box;
+
+}
+.blog-title {
+  font-size: 118px;
+  font-weight: bold;
+  font-family: 'Benguiat Pro ITC';
+    letter-spacing: 0px;
+    color: #3F8B98;
+    text-align: center;
+    opacity: 1;
+}
+
+.blog-card {
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  text-align: left;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  height: 100%; /* Ensure all cards have the same height */
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-card .newpadding {
+  flex-grow: 1; /* This ensures that content fills the space evenly */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.blog-image {
+  width: 100%;
+
+
+  border-radius: 10px;
+}
+
+
+.blog-card:hover {
+    transform: translateY(-5px);
+}
+
+
+
+.blog-card:hover::before {
+    opacity: 1;
+}
+
+
+  
+  .blog-heading {
+    font-family: 'Benguiat Pro ITC';
+    font-size: 25px;
+    letter-spacing: 0px;
+    color: #121110;
+    opacity: 1;
+    font-weight: bold;
+    margin-top: 10px;
+    padding: 10px 0 10px 0;
+  }
+  
+  .blog-description {
+    font-size: 18px;
+    font-weight: normal;
+    font-family: 'Montserrat';
+    letter-spacing: 0px;
+    color: #121110;
+    opacity: 1;
+    overflow: hidden;
+
+  }
+  
+  .read-more {
+    background: #3F8B98;
+    border-radius: 161px;
+    font-size: 18px;
+    font-weight: medium;
+    font-family: 'Montserrat';
+    color: #FDFDFE;
+    text-transform: capitalize;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    font-size: 600;
+    text-align: end;
+  }
+  
+  .blog-date {
+    font-size: 15px;
+    font-weight: medium;
+    font-family: 'Montserrat';
+    color: #121110;
+    text-align: start;
+  }
+  .newpadding{
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  #sectionpadding{
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+  #sectionpadding2{
+    padding-bottom: 80px;
+  }
+
+  .end{
+    text-align: end;
+  }

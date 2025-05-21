@@ -1,0 +1,25 @@
+/* ViewPlan.css */
+
+.admin-plan-container {
+  padding: 1rem;
+}
+
+.card-title {
+  font-weight: bold;
+}
+
+.card-text {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .admin-plan-container {
+    padding: 0.5rem;
+  }
+
+  .table-responsive {
+    display: none;
+  }
+}
+
+

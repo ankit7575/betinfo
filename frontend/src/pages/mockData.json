@@ -1,0 +1,112 @@
+{
+    "success": true,
+    "userId": "681860effd4838d8dfbe22ee",
+    "eventId": "34286316",
+    "openingbalance": 5000,
+    "oddsHistory": [
+        {
+            "odds": {
+                "back": 0.5,
+                "lay": 0.8
+            },
+            "Ammount": {
+                "back": 214416.65000000002,
+                "lay": 0
+            },
+            "Profit": {
+                "back": 1540.4,
+                "lay": 0
+            },
+            "userId": "681860effd4838d8dfbe22ee",
+            "selectionId": 48800301,
+            "runnerName": "Malta",
+            "referenceAdminOpeningBalance": 200000,
+            "userOpeningBalance": 5000,
+            "createdAt": "2025-05-06T01:09:46.737Z",
+            "history": [
+                {
+                    "odds": {
+                        "back": 0.5,
+                        "lay": 0.8
+                    },
+                    "Ammount": {
+                        "back": 8576666,
+                        "lay": 0
+                    },
+                    "Profit": {
+                        "back": 61616,
+                        "lay": 0
+                    },
+                    "timestamp": "2025-05-06T00:55:24.064Z"
+                },
+                {
+                    "odds": {
+                        "back": 0.5,
+                        "lay": 0.8
+                    },
+                    "Ammount": {
+                        "back": 8576666,
+                        "lay": 0
+                    },
+                    "Profit": {
+                        "back": 61616,
+                        "lay": 0
+                    },
+                    "timestamp": "2025-05-06T01:09:46.719Z"
+                }
+            ]
+        },
+        {
+            "odds": {
+                "back": 0.6,
+                "lay": 1.1
+            },
+            "Ammount": {
+                "back": 1315.65,
+                "lay": 0
+            },
+            "Profit": {
+                "back": 214.875,
+                "lay": 0
+            },
+            "userId": "681860effd4838d8dfbe22ee",
+            "selectionId": 11392436,
+            "runnerName": "Estonia",
+            "referenceAdminOpeningBalance": 200000,
+            "userOpeningBalance": 5000,
+            "createdAt": "2025-05-06T01:09:46.738Z",
+            "history": [
+                {
+                    "odds": {
+                        "back": 0.6,
+                        "lay": 1.1
+                    },
+                    "Ammount": {
+                        "back": 52626,
+                        "lay": 0
+                    },
+                    "Profit": {
+                        "back": 8595,
+                        "lay": 0
+                    },
+                    "timestamp": "2025-05-06T00:55:24.066Z"
+                },
+                {
+                    "odds": {
+                        "back": 0.6,
+                        "lay": 1.1
+                    },
+                    "Ammount": {
+                        "back": 52626,
+                        "lay": 0
+                    },
+                    "Profit": {
+                        "back": 8595,
+                        "lay": 0
+                    },
+                    "timestamp": "2025-05-06T01:09:46.728Z"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,68 @@
+.call-to-action-1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #3F8B98;
+    color: white;
+    padding: 1.5rem 10%; /* Use percentage instead of fixed width */
+    border-radius: 1rem;
+    margin: 3rem auto 0;
+    gap: 1rem;
+    max-width: 100rem; /* Ensures it doesn't grow too large */
+    text-align: center;
+    margin-bottom: 100px;
+    width: 75%; /* Ensure full width */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.call-to-action-1 button {
+    background-color: white;
+    color: #5C8A8A;
+    border-radius: 9999px;
+
+    .call-to-action-1 {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #FFFFFF;
+        /* Match the stats section */
+        color: #333;
+        padding: 5rem 5rem;
+        /* Increased padding for balance */
+        border-radius: 1rem;
+        margin: 3rem auto 0;
+        gap: 1rem;
+        max-width: 100rem;
+        /* Match width with the stats section */
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        /* Soft shadow */
+    }
+
+    .call-to-action-1 button {
+        background-color: #3F8B98;
+        /* Match primary theme color */
+        color: white;
+        border-radius: 9999px;
+        padding: 0.75rem 1.5rem;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: background 0.3s;
+        border: none;
+    }
+
+    .call-to-action-1 button:hover {
+        background-color: #2d6f7a;
+        /* Slightly darker for hover effect */
+    }
+
+    padding: 0.75rem 1.5rem;
+    font-weight: bold;
+    font-size: 1rem;
+    /* Make text size consistent */
+    transition: background 0.3s;
+}
+
+.call-to-action-1 button:hover {
+    background-color: #e0e0e0;
+}

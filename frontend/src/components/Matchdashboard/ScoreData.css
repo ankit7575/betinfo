@@ -1,0 +1,70 @@
+/* ScoreData.css */
+.score-data-container {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: auto;
+  }
+  
+  .score-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .score-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .score-header p {
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .score-details {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .team-score {
+    width: 48%;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .team-score div {
+    margin-bottom: 10px;
+  }
+  
+  .recent-balls {
+    width: 48%;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .recent-balls h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  
+  .balls-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .ball-item {
+    background-color: #e3e3e3;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  

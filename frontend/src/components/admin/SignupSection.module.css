@@ -1,0 +1,139 @@
+.container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #5f2c82, #49a09d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  .signupBox {
+    background-color: #fff;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 1.9rem;
+    margin-bottom: 1.5rem;
+    color: #222;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease-in-out;
+  }
+  
+  .input:focus {
+    border-color: #007bff;
+  }
+  
+  .button {
+    background-color: #49a09d;
+    color: white;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #3b8071;
+  }
+  
+  .error {
+    color: #d9534f;
+    font-size: 0.9rem;
+  }
+  
+  .success {
+    color: #5cb85c;
+    font-size: 0.9rem;
+  }
+  
+  .secondaryButton {
+    width: 100%;
+    padding: 12px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .secondaryButton:hover {
+    background-color: #545b62;
+  }
+  
+  .keyButton {
+    width: 100%;
+    padding: 12px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .keyButton:hover {
+    background-color: #218838;
+  }
+  
+  .error {
+    color: red;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .success {
+    color: green;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  .passwordWrapper {
+    position: relative;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  .showPasswordButton {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #333;
+  }
+  
+  button:focus {
+    outline: none;
+  }
+  

@@ -1,0 +1,53 @@
+/* Account Section Styles */
+.account-container {
+    background-color: #fff;
+    width: 80%;
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .account-container h2 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .account-container p {
+    font-size: 1.1rem;
+    color: #34495e;
+    margin-bottom: 10px;
+  }
+  
+  .account-container p strong {
+    color: #2c3e50;
+    font-weight: bold;
+  }
+  
+  .account-container .active {
+    color: #2ecc71;
+    font-weight: bold;
+  }
+  
+  .account-container .inactive {
+    color: #e74c3c;
+    font-weight: bold;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .account-container {
+      width: 90%;
+      padding: 15px;
+    }
+  
+    .account-container h2 {
+      font-size: 1.8rem;
+    }
+  
+    .account-container p {
+      font-size: 1rem;
+    }
+  }

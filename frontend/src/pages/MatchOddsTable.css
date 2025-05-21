@@ -1,0 +1,61 @@
+.odds-container {
+    max-width: 900px;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ccc;
+    background-color: #fefefe;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .market-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+    background: #f4f4f4;
+  }
+  
+  .market-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+  
+  .market-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+  
+  .market-table th,
+  .market-table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;
+  }
+  
+  .market-table th {
+    background-color: #f4f4f4;
+  }
+  
+  .market-table td div {
+    font-size: 1rem;
+    padding: 4px 0;
+  }
+  
+  .price {
+    font-weight: bold;
+    font-size: 1.4rem; /* Large font for price */
+  }
+  
+  .stake {
+    font-size: 0.8rem; /* Smaller font for stake */
+    color: #666;
+  }
+  
+  .loading {
+    text-align: center;
+    font-size: 1.2rem;
+    padding: 20px;
+  }
+  

@@ -1,0 +1,81 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+    background-color: #f4f6f8;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+  
+  .loginBox {
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .title {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: #2c3e50;
+  }
+  
+  p {
+    font-size: 14px;
+    color: #555;
+    margin: 8px 0;
+  }
+  
+  .qrContainer {
+    margin: 24px 0;
+  }
+  
+  .qrImage {
+    width: 220px;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    margin: 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  
+  .button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #0056b3;
+  }
+  
+  .loadingText {
+    color: #888;
+    margin-top: 12px;
+  }
+  
+  .confirmationMessage {
+    color: #28a745;
+    margin-top: 16px;
+    font-weight: 500;
+  }
+  

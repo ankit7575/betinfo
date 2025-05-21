@@ -1,0 +1,92 @@
+/* General Container Styling */
+.view-keys-coins {
+    margin-top: 20px;
+  }
+  
+  .fw-bold {
+    font-weight: 600;
+  }
+  
+  .table-dark {
+    background-color: #343a40;
+  }
+  
+  .table-light {
+    background-color: #f8f9fa;
+  }
+  
+  /* Accordion Styling */
+  .accordion-button {
+    font-size: 1.2rem;
+    padding: 15px;
+    background-color: #f5f5f5;
+    color: #007bff;
+    border-radius: 8px;
+    text-align: left;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+  }
+  
+  .accordion-button:hover,
+  .accordion-button:focus {
+    background-color: #e0e0e0;
+    color: #0056b3;
+    box-shadow: 0 0 0 0.25rem rgba(38, 143, 255, 0.5);
+  }
+  
+  .accordion-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .accordion-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Table Styling */
+  .table-striped tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+  
+  .table-striped tbody tr:nth-child(even) {
+    background-color: #ffffff;
+  }
+  
+  .table-striped tbody tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* Badge Styling */
+  .badge {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 7px 12px;
+    border-radius: 12px;
+  }
+  
+  /* Button Hover Styling */
+  button.accordion-button:hover {
+    cursor: pointer;
+  }
+  
+  .table th,
+  .table td {
+    vertical-align: middle;
+    padding: 12px;
+  }
+  
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .accordion-button {
+      font-size: 1rem;
+      padding: 10px;
+    }
+  
+    .table th,
+    .table td {
+      padding: 10px;
+    }
+  }
+  

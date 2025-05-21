@@ -1,0 +1,43 @@
+.coin-chatbox {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 9999;
+  background: #1a1a1a;
+  padding: 1rem 1.25rem;
+  border: 2px solid #0ff;
+  border-radius: 12px;
+  max-width: 240px;
+  min-width: 200px;
+  color: #0ff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  animation: glowBox 2s infinite alternate;
+}
+
+.countdown-text {
+  font-weight: bold;
+  color: #0ff;
+}
+
+@keyframes glowBox {
+  0% {
+    border-color: #0ff;
+    box-shadow: 0 0 8px #0ff;
+  }
+  50% {
+    border-color: #f0f;
+    box-shadow: 0 0 10px #f0f;
+  }
+  100% {
+    border-color: #0ff;
+    box-shadow: 0 0 8px #0ff;
+  }
+}
+
+.btn.btn-warning,
+.btn.btn-primary {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  margin-top: 8px;
+}

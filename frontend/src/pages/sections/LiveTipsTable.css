@@ -1,0 +1,57 @@
+.live-tips-card {
+  background-color: #111;
+  border: 2px solid #444;
+  border-radius: 10px;
+  animation: glowBorder 4s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.live-tips-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid #444;
+}
+
+.live-tips-table th,
+.live-tips-table td {
+  color: #fff;
+  border-color: #555;
+}
+
+.live-tip-row:hover {
+  background-color: #222;
+}
+
+.highlight {
+  color: #0f0;
+  font-weight: bold;
+  background-color: rgba(0, 255, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+@keyframes glowBorder {
+  0% {
+    border-color: #0ff;
+    box-shadow: 0 0 10px #0ff;
+  }
+  25% {
+    border-color: #09f;
+    box-shadow: 0 0 15px #09f;
+  }
+  50% {
+    border-color: #f0f;
+    box-shadow: 0 0 15px #f0f;
+  }
+  75% {
+    border-color: #ff0;
+    box-shadow: 0 0 15px #ff0;
+  }
+  100% {
+    border-color: #0f0;
+    box-shadow: 0 0 20px #0f0;
+  }
+}
+
+.blackcolor{
+  color: #000 !important;
+}

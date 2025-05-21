@@ -1,0 +1,86 @@
+.account-page {
+  padding: 1rem;
+}
+
+.account-main{
+  width: 100%;
+}
+.sidebar-toggle-btn {
+  background: #007bff;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  margin: 1rem 0;
+  cursor: pointer;
+}
+
+.account-container {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Sidebar */
+.account-sidebar {
+  width: 250px;
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.account-sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.account-sidebar li {
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.account-sidebar li.active {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.account-sidebar .logout {
+  color: red;
+  font-weight: bold;
+}
+
+/* Main Content */
+.account-content {
+  flex: 1;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .account-container {
+    flex-direction: column;
+  }
+  .account-sidebar {
+    width: 100%;
+  }
+}
+
+/* Default: hide sidebar on mobile */
+@media (max-width: 768px) {
+  .account-sidebar {
+    display: none;
+  }
+
+  .account-container.sidebar-open .account-sidebar {
+    display: block;
+  }
+
+  .account-container.sidebar-open .account-main {
+    margin-top: 1rem;
+  }
+}
+.sidebar-toggle-btn {
+  display: none;
+}

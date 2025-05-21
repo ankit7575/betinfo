@@ -1,0 +1,163 @@
+/* General container styling */
+.admin-user-container {
+    padding: 30px;
+    background-color: #f4f6f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Title styling */
+  .admin-user-container h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  /* Search bar styling */
+  .admin-user-container .form-control {
+    max-width: 350px;
+    margin-bottom: 20px;
+    border-radius: 30px;
+    border: 1px solid #ddd;
+    padding-left: 20px;
+  }
+  
+  .admin-user-container .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+  
+  /* Table Styling */
+  .table {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .table th,
+  .table td {
+    padding: 12px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1rem;
+  }
+  
+  .table th {
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .table td {
+    background-color: #f9f9f9;
+  }
+  
+  .table tr:nth-child(even) {
+    background-color: #f1f1f1;
+  }
+  
+  /* Table hover effect */
+  .table tr:hover {
+    background-color: #e2e6ea;
+  }
+  
+  /* Pagination container */
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .pagination-container .pagination {
+    margin: 0;
+  }
+  
+  /* Modal Styling */
+  .Modal {
+    width: 50%;
+    margin: auto;
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Modal Form Styling */
+  .Modal .form-control {
+    border-radius: 25px;
+    margin-bottom: 15px;
+    padding: 10px 20px;
+  }
+  
+  .Modal .form-control:focus {
+    border-color: #007bff;
+  }
+  
+  /* Buttons Styling */
+  button {
+    border-radius: 30px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+  
+  button:hover {
+    cursor: pointer;
+    opacity: 0.85;
+  }
+  
+  /* Modal Save and Cancel Buttons */
+  button[type="button"].btn-success {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+  }
+  
+  button[type="button"].btn-success:hover {
+    background-color: #218838;
+  }
+  
+  button[type="button"].btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+    border: none;
+  }
+  
+  button[type="button"].btn-secondary:hover {
+    background-color: #5a6268;
+  }
+  
+  /* Styling for the Modal header */
+  .Modal h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: 600;
+  }
+  /* Filter section */
+.filter-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .filter-section .form-control {
+    max-width: 200px;
+  }
+  
+  .clear-filters-btn {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .clear-filters-btn:hover {
+    background-color: #ccc;
+  }
+  

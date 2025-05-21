@@ -1,0 +1,11 @@
+/*!
+ * Font Awesome Free 6.0.0-beta3 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license/free
+ */
+ @font-face {
+    font-family: "Font Awesome 6 Free";
+    font-style: normal;
+    font-weight: 900;
+    src: url("/assets/fa-solid-900.eot");
+    src: url("/assets/fa-solid-900.eot?#iefix") format("embedded-opentype"), url("/assets/fa-solid-900.woff2") format("woff2"), url("/assets/fa-solid-900.woff") format("woff"), url("/assets/fa-solid-900.ttf") format("truetype"), url("/assets/fa-solid-900.svg#fontawesome") format("svg");
+  }

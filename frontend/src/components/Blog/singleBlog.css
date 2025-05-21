@@ -1,0 +1,224 @@
+
+  
+  .blog-top-image {
+    width: 100%;
+  }
+  
+  .blog-main-title {
+    font-size: 40px;
+    font-family: "Benguiat Pro ITC" ;
+    font-weight:bold ;
+
+    letter-spacing: 0px;
+    color: #3F8B98;
+    text-align: center;
+    text-transform: capitalize;
+    opacity: 1;
+    margin: 20px 0;
+  }
+  
+
+  
+  .blog-content-image {
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+  
+  .blog-subheading {
+    font-size: 30px;
+    letter-spacing: 0px;
+    color: #121110;
+    text-align: left;
+    opacity: 1;
+    font-weight: 700;
+    margin-top: 30px;
+  }
+  
+  .blog-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .list-heading {
+    font-size: 22px;
+    letter-spacing: 0px;
+    color: #121110;
+    text-align: left;
+    font-weight: 500;
+}
+  
+  .list-text {
+    font: normal normal normal 15px Montserrat, sans-serif;
+    letter-spacing: 0px;
+    color: #121110;
+    text-align: left;
+  }
+  
+  .final-paragraph {
+    font-size: 20px;
+    letter-spacing: 0px;
+    font-weight: 700;
+    color: #121110;
+    opacity: 1;
+    margin-top: 30px;
+  }
+  
+  .newsletter-section {
+    background: #d8f1f3;
+    border-radius: 23px;
+    padding: 5%;
+    text-align: start;
+    margin-top: 50px;
+  }
+  
+  .newsletter-heading {
+    font: normal normal bold 30px/37px Montserrat, sans-serif;
+    letter-spacing: 0px;
+    color: #121110;
+    text-align: start;
+  }
+  
+  .newsletter-text {
+    font: normal normal normal 15px Montserrat, sans-serif;
+    letter-spacing: 0px;
+    padding-right: 15%;
+    color: #121110;
+  }
+  
+  .newsletter-form {
+    width: 100%;  /* Make the form take the full width */
+    display: flex; /* Align items in a row */
+    flex-direction: column; /* Stack input and button vertically */
+    align-items: center; /* Center the content */
+    gap: 10px; /* Add some space between elements */
+  }
+  
+  .newsletter-form input {
+    width: 100%; /* Make input field full width */
+    padding: 10px; /* Add padding for better spacing */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .newsletter-form button {
+    width: 100%; /* Make button full width */
+    padding: 10px;
+    background-color: #3F8B98;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .newsletter-form button:hover {
+    background-color: #337380;
+  }
+  
+  .related-blogs-heading {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 0px;
+    color: #121110;
+    text-align: start;
+    margin-top: 50px;
+  }
+  
+
+  
+  .related-blog-card {
+    text-align: center;
+    width: 45%;
+  }
+  
+  .related-blog-image {
+    width: 100%;
+    border-radius: 10px;
+  }
+  
+  .related-blog-title {
+    font: normal normal bold 20px/29px Montserrat, sans-serif;
+    letter-spacing: 0px;
+    color: #121110;
+    margin-top: 10px;
+  }
+  
+  .related-blog-date {
+    font: normal normal normal 17px/20px Montserrat, sans-serif;
+    color: #121110;
+    text-align: center;
+  }
+  
+  .newpadding-newsletter{
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  /* Form Container */
+.subscribe-form {
+  display: flex;
+  height: 68px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Input Field */
+.subscribe-form input {
+  flex: 1;
+  padding: 0 20px;
+  font-size: 16px;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+/* Button Wrapper */
+.subscribe-form-button-container {
+  background: white;
+  padding: 5px;
+  border-radius: 0 8px 8px 0;
+}
+
+/* Submit Button */
+.subscribe-form button {
+  width: 100px;
+  height: 100%;
+  background-color: #3F8B98;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+/* Hover & Disabled States */
+.subscribe-form button:hover {
+  background-color: #3F8B98;
+}
+
+.subscribe-form button:disabled {
+  background-color: #3F8B98;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .subscribe-form {
+    flex-direction: row;
+    height: 60px;
+  }
+
+  .subscribe-form input {
+    font-size: 14px;
+  }
+
+  .subscribe-form button {
+    width: 100px;
+    font-size: 14px;
+  }
+}

@@ -1,0 +1,109 @@
+/* Container with centered layout and soft background */
+.access-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    padding: 40px 20px;
+  }
+  
+  /* Glass-effect card */
+  .access-card {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 40px 30px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  /* Headings and messages */
+  .access-heading {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  
+  .access-heading span {
+    color: #ffc107;
+  }
+  
+  .access-message {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    color: #e0e0e0;
+  }
+  
+  /* Buttons layout */
+  .access-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+  
+  /* Shared Button Styles */
+  .btn {
+    padding: 12px 22px;
+    font-size: 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    border: none;
+    min-width: 120px;
+  }
+  
+  /* Individual Button Styles */
+  .demo-btn {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .demo-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+  }
+  
+  .login-btn {
+    background-color: #28a745;
+    color: #fff;
+  }
+  
+  .login-btn:hover {
+    background-color: #1e7e34;
+    transform: scale(1.05);
+  }
+  
+  .signup-btn {
+    background-color: #ffc107;
+    color: #000;
+  }
+  
+  .signup-btn:hover {
+    background-color: #e0a800;
+    transform: scale(1.05);
+  }
+  
+  /* Responsive */
+  @media (max-width: 500px) {
+    .access-card {
+      padding: 30px 20px;
+    }
+  
+    .access-heading {
+      font-size: 1.5rem;
+    }
+  
+    .btn {
+      width: 100%;
+    }
+  }
+  

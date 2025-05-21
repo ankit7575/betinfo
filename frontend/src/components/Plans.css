@@ -1,0 +1,69 @@
+/* General container styling */
+.container {
+    max-width: 1200px;
+    padding: 30px;
+  }
+  
+  /* Styling for individual plan cards */
+  .plan-card {
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+  }
+  
+  .plan-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Card title styling */
+  .card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Plan name customization */
+  .plan-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #49a09d;
+    margin-bottom: 1rem;
+  }
+  
+  /* Button styling */
+  .btn-custom {
+    background-color: #49a09d;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    width: 100%;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-custom:hover {
+    background-color: #3b8071;
+  }
+  
+  /* Card body padding */
+  .card-body {
+    padding: 2rem;
+    text-align: left;
+  }
+  
+  /* Responsive adjustments for smaller screens */
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 1.5rem;
+    }
+    .plan-name {
+      font-size: 1.3rem;
+    }
+    .card-title {
+      font-size: 1.6rem;
+    }
+  }
+  
