@@ -8,52 +8,19 @@ const ViewTennisMatch = () => {
   const dispatch = useDispatch();
   const { loading, error, tennisMatches = [] } = useSelector((state) => state.match || {});
 
-  const now = new Date();
-  const today = new Date(now);
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
   useEffect(() => {
     dispatch(getTennisMatches());
   }, [dispatch]);
 
-  const isSameDate = (d1, d2) =>
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate();
-
-  // Only show matches where selected: true
-  const filteredMatches = tennisMatches.filter(match => match.selected);
-
-  const todayMatches = filteredMatches
-    .filter((match) => {
-      const matchTime = new Date(match.openDate);
-      return (
-        Array.isArray(match.matchRunners) &&
-        match.matchRunners.length === 2 &&
-        Array.isArray(match.markets) &&
-        match.markets.length > 0 &&
-        matchTime instanceof Date &&
-        !isNaN(matchTime) &&
-        isSameDate(matchTime, today)
-      );
-    })
-    .sort((a, b) => new Date(a.openDate) - new Date(b.openDate));
-
-  const tomorrowMatches = filteredMatches
-    .filter((match) => {
-      const matchTime = new Date(match.openDate);
-      return (
-        Array.isArray(match.matchRunners) &&
-        match.matchRunners.length === 2 &&
-        Array.isArray(match.markets) &&
-        match.markets.length > 0 &&
-        matchTime instanceof Date &&
-        !isNaN(matchTime) &&
-        isSameDate(matchTime, tomorrow)
-      );
-    })
-    .sort((a, b) => new Date(a.openDate) - new Date(b.openDate));
+  // Only show matches where selected: true and valid runners/markets
+  const filteredMatches = tennisMatches.filter(
+    match =>
+      match.selected &&
+      Array.isArray(match.matchRunners) &&
+      match.matchRunners.length === 2 &&
+      Array.isArray(match.markets) &&
+      match.markets.length > 0
+  );
 
   const formatMatchTime = (openDate) => {
     const matchTime = new Date(openDate);
@@ -70,14 +37,23 @@ const ViewTennisMatch = () => {
   const openViewTipInNewTab = (eventId, markets) => {
     const matchOddsMarket = markets?.find((m) => m.marketName === 'Match Odds');
     const matchOddsMarketId = matchOddsMarket?.marketId || '';
-    const url = `/viewtip?eventId=${eventId}&marketId=${matchOddsMarketId}`;
-    window.location.href = url; // Use window.open(url, '_blank') for new tab if needed
+    const url = `/tennisTip?eventId=${eventId}&marketId=${matchOddsMarketId}`;
+    window.location.href = url;
   };
+
+  // Utility: show Admin Status column only if needed
+  const shouldShowAdminStatus = (matchesToShow) =>
+    matchesToShow.some(
+      (match) => match.adminStatus && match.adminStatus.trim() && match.adminStatus.trim().toLowerCase() !== 'normal'
+    );
 
   const renderTable = (matchesToShow) => {
     if (!matchesToShow.length) {
       return <div className="white">No matches found</div>;
     }
+
+    const showAdminStatus = shouldShowAdminStatus(matchesToShow);
+    const now = new Date();
 
     return (
       <div className="table-responsive mb-4" id="viewtip" style={{ maxHeight: '500px', overflowY: 'auto' }}>
@@ -89,7 +65,7 @@ const ViewTennisMatch = () => {
               <th>Match Time</th>
               <th>Status</th>
               <th>Competition</th>
-              <th>Admin Status</th>
+              {showAdminStatus && <th>Pitch Status</th>}
               <th>Action</th>
             </tr>
           </thead>
@@ -101,8 +77,9 @@ const ViewTennisMatch = () => {
                   ? match.matchRunners.map((r) => r.runnerName).join(' vs ')
                   : 'N/A');
               const matchDate = new Date(match.openDate);
-              const status = matchDate > now ? 'Coming' : 'Live';
+              const isLive = matchDate <= now;
               const eventId = match.eventId;
+              const adminStatus = match.adminStatus && match.adminStatus.trim();
 
               return (
                 <tr key={eventId || index}>
@@ -110,16 +87,20 @@ const ViewTennisMatch = () => {
                   <td>{formatMatchDate(match.openDate)}</td>
                   <td>{formatMatchTime(match.openDate)}</td>
                   <td>
-                    <span className={`badge ${status === 'Live' ? 'bg-success' : 'bg-warning text-dark'}`}>
-                      {status}
+                    <span className={`badge ${isLive ? 'bg-success' : 'bg-warning text-dark'}`}>
+                      {isLive ? 'Live' : 'Upcoming'}
                     </span>
                   </td>
                   <td>{match.competitionName || 'N/A'}</td>
-                  <td>
-                    <span className="badge bg-info text-dark">
-                      {match.adminStatus || 'Normal'}
-                    </span>
-                  </td>
+                  {showAdminStatus && (
+                    <td>
+                      {adminStatus && adminStatus.toLowerCase() !== 'normal' ? (
+                        <span className="badge bg-info text-dark">{adminStatus}</span>
+                      ) : (
+                        ''
+                      )}
+                    </td>
+                  )}
                   <td>
                     <button
                       className="btn btn-primary view-tip"
@@ -144,12 +125,7 @@ const ViewTennisMatch = () => {
     <div className="container-fluid">
       <div className="p-5 mt-4 pt-1">
         <h1 className="mb-4 white">Tennis Match Tips</h1>
-
-        <h3 className="white mb-3">Today’s Matches</h3>
-        {renderTable(todayMatches)}
-
-        <h3 className="white mt-4 mb-3">Tomorrow’s Matches</h3>
-        {renderTable(tomorrowMatches)}
+        {renderTable(filteredMatches)}
       </div>
     </div>
   );

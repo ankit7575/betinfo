@@ -1,8 +1,7 @@
 import React from 'react';
-import './Transactions.css'; // Import CSS file for styling
+import './Transactions.css';
 
 const Transactions = ({ user }) => {
-  // Check if transactions exist in the user object
   if (!user || !user.transactions || user.transactions.length === 0) {
     return <p>No transactions available.</p>;
   }
@@ -22,16 +21,16 @@ const Transactions = ({ user }) => {
         </thead>
         <tbody>
           {user.transactions.map((transaction) => (
-            <tr key={transaction._id.$oid}>
-              <td>{transaction.transactionId}</td>
-              <td>{transaction.userId}</td>
-              <td>{transaction.plan?.$oid || 'N/A'}</td> {/* Plan ID with optional chaining */}
-              <td>{transaction.status}</td>
-              <td>
+            <tr key={transaction._id?.$oid || transaction.transactionId}>
+              <td data-label="Wallet ID">{transaction.transactionId}</td>
+              <td data-label="User ID">{transaction.userId}</td>
+              <td data-label="Plan ID">{transaction.plan?.$oid || 'N/A'}</td>
+              <td data-label="Status">{transaction.status}</td>
+              <td data-label="Transaction Date">
                 {transaction.transactionDate?.$date
                   ? new Date(transaction.transactionDate.$date).toLocaleString()
                   : '-'}
-              </td> {/* Date formatting with optional chaining */}
+              </td>
             </tr>
           ))}
         </tbody>

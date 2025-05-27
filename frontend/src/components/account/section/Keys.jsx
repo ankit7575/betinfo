@@ -2,7 +2,6 @@ import React from "react";
 import './Keys.css';
 
 const Keys = ({ user }) => {
-  // Check if user and keys exist
   if (!user || !user.keys || user.keys.length === 0) {
     return <p>No keys available.</p>;
   }

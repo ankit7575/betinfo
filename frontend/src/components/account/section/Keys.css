@@ -1,30 +1,96 @@
 .keys-container {
-    margin: 20px;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: 24px auto;
+  padding: 22px 28px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+  max-width: 650px;
+}
+
+.keys-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 14px;
+  color: #23485a;
+  font-weight: 800;
+}
+
+.keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-size: 1.03rem;
+}
+
+.keys-table th,
+.keys-table td {
+  padding: 13px 11px;
+  text-align: left;
+  border-bottom: 1.2px solid #ddd;
+}
+
+.keys-table th {
+  background: linear-gradient(90deg, #43e7e9 70%, #43aeff 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.07rem;
+  letter-spacing: 0.03em;
+}
+
+.keys-table tr:hover {
+  background-color: #ecfdff;
+}
+
+/* MOBILE RESPONSIVE STYLES */
+@media (max-width: 650px) {
+  .keys-container {
+    padding: 12px 4vw;
+    margin: 11px 0;
+    border-radius: 9px;
+    min-width: 0;
+    max-width: 99vw;
   }
-  
-  .keys-table {
+  .keys-table,
+  .keys-table thead,
+  .keys-table tbody,
+  .keys-table tr {
+    display: block;
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
   }
-  
-  .keys-table th,
+  .keys-table thead {
+    display: none; /* Hide the table header for mobile */
+  }
+  .keys-table tr {
+    margin-bottom: 19px;
+    background: #f5fdff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #6fd8fd12;
+    border: 1.2px solid #e4f5f9;
+    padding: 0 1vw;
+    overflow: hidden;
+  }
   .keys-table td {
-    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 10px;
+    border-bottom: none;
+    border-radius: 0;
+    background: none;
+    font-size: 1.02rem;
+    position: relative;
+  }
+  .keys-table td:before {
+    content: attr(data-label);
+    flex: 0 0 44%;
+    color: #4a7fd7;
+    font-weight: 700;
+    font-size: 0.99rem;
+    padding-right: 12px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
   }
-  
-  .keys-table th {
-    background-color: #4CAF50;
-    color: white;
-  }
-  
-  .keys-table tr:hover {
-    background-color: #f1f1f1;
-  }
-  
+}
+
+/* Attach data-label for accessibility */
+.keys-table td:nth-child(1):before { content: "Key Code"; }
+.keys-table td:nth-child(2):before { content: "Status"; }
+.keys-table td:nth-child(3):before { content: "Created At"; }

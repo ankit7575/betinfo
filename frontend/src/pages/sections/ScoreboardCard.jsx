@@ -47,37 +47,47 @@ const ScoreboardCard = ({ scoreboard: initialScoreboard, socket }) => {
 
   const overs1 = (Number(liveScoreboard.ballsDone1 || 0) / 6).toFixed(1);
 
-  // Optional: color the big ball if any ball is wicket, boundary, etc.
-  let ballClass = "sb-ballpill";
-  if (recentBalls.includes("W")) ballClass += " wicket";
-  else if (recentBalls.some(b => b === "4" || b === "6")) ballClass += " boundary";
-  else if (recentBalls.some(b => ["Nb", "nb", "WD", "wd"].includes(b))) ballClass += " extra";
-  else if (recentBalls.every(b => b === "0" || b === "." || b === "•")) ballClass += " dot";
+  const getBallClass = (b) => {
+    if (["W", "w"].includes(b)) return "fancy-scoreboard-ball wicket";
+    if (b === "4") return "fancy-scoreboard-ball four";
+    if (b === "6") return "fancy-scoreboard-ball six";
+    if (["Nb", "nb", "WD", "wd"].includes(b)) return "fancy-scoreboard-ball extra";
+    if (["0", ".", "•"].includes(b)) return "fancy-scoreboard-ball dot";
+    return "fancy-scoreboard-ball";
+  };
 
   return (
-    <div className="scoreboard-card-neo scoreboard-row-ultragap">
-      <span className={`sb-livebadge-ultra ${socketConnected ? 'live' : ''}`}>
-        {socketConnected ? '● Live' : '○ Offline'}
-      </span>
-      <span className="sb-title-ultra">
-        {liveScoreboard.title || 'Match'}
-      </span>
-      <span className="sb-team-ultra">
-        <span className="sb-teamname">{liveScoreboard.team1 || '-'}</span>
-        <span className="sb-scorepill">{liveScoreboard.score1 || '0'}/{liveScoreboard.wicket1 || '0'}</span>
-      </span>
-      <span className="sb-team-ultra">
-        <span className="sb-teamname">{liveScoreboard.team2 || '-'}</span>
-        <span className="sb-scorepill">{liveScoreboard.score2 || '0'}/{liveScoreboard.wicket2 || '0'}</span>
-      </span>
-      <span className="sb-overspill">
-        Ov: {overs1 || '0.0'}
-      </span>
-      <span className="sb-recentballs-ultra">
-        <span className={ballClass} title={recentBalls.join('')}>
-          {recentBalls.length ? recentBalls.join('') : '-'}
+    <div className="fancy-card-scoreboard mini">
+      <div className="fancy-scoreboard-header mini">
+        <div className={socketConnected ? "fancy-live-dot" : "fancy-offline-dot"} />
+        <span className="fancy-live-text mini">{socketConnected ? "LIVE" : "OFF"}</span>
+      </div>
+      <div className="fancy-score-title mini">{liveScoreboard.title || ''}</div>
+      <div className="fancy-score-teams mini">
+        <span className="fancy-teamname">{liveScoreboard.team1 || '-'}</span>
+        <span className="fancy-score">
+          {liveScoreboard.score1 || '0'}
+          <span className="fancy-divider">/</span>
+          {liveScoreboard.wicket1 || '0'}
         </span>
-      </span>
+        <span style={{marginLeft:8}} className="fancy-overs">{overs1 || '0.0'}</span>
+      </div>
+      <div className="fancy-score-teams mini">
+        <span className="fancy-teamname">{liveScoreboard.team2 || '-'}</span>
+        <span className="fancy-score">
+          {liveScoreboard.score2 || '0'}
+          <span className="fancy-divider">/</span>
+          {liveScoreboard.wicket2 || '0'}
+        </span>
+      </div>
+      <div className="fancy-balls-row mini">
+        {recentBalls.length
+          ? recentBalls.map((b, i) => (
+              <span key={i} className={getBallClass(b)}>{b}</span>
+            ))
+          : <span className="fancy-noballs">-</span>
+        }
+      </div>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { redeemCoinForAllMatches } from '../../../actions/coinAction';
-import { Helmet } from 'react-helmet'; // Import react-helmet
+import { Helmet } from 'react-helmet';
 import './Coins.css';
 
 const Coins = ({ user }) => {
@@ -10,7 +10,7 @@ const Coins = ({ user }) => {
   const [showExpiredCoins, setShowExpiredCoins] = useState(false);
   const [message, setMessage] = useState('');
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Use navigate to redirect
+  const navigate = useNavigate();
 
   const now = new Date();
   const allCoins = user?.keys?.flatMap((key) => key.coin || []) || [];
@@ -78,8 +78,7 @@ const Coins = ({ user }) => {
     try {
       await dispatch(redeemCoinForAllMatches(coinId));
       setMessage(`Coin ${coinId} redeemed successfully for access to all matches for 24 hours.`);
-      // Redirect to home after successful redemption
-      navigate('/'); // This will navigate to the homepage
+      navigate('/');
     } catch (error) {
       setMessage(`Coin ${coinId}: ${error.message}`);
     }
@@ -91,14 +90,12 @@ const Coins = ({ user }) => {
 
   return (
     <div className="coins-container">
-      {/* Use Helmet to manage document head */}
       <Helmet>
         <title>Your Coins</title>
         <meta name="description" content="Manage your coins and redeem them for access to all matches." />
       </Helmet>
 
       <h2>Your Coins</h2>
-
       {message && <div className="coin-message">{message}</div>}
 
       <div className="toggle-container">
@@ -149,18 +146,18 @@ const Coins = ({ user }) => {
             const coinId = coin.id || coin._id;
             return (
               <tr key={coinId}>
-                <td>{coin.shareableCode || 'N/A'}</td>
+                <td data-label="Coin Code">{coin.shareableCode || 'N/A'}</td>
                 {(showUsedCoins || showExpiredCoins) && (
-                  <td>{new Date(coin.usedAt).toLocaleString()}</td>
+                  <td data-label="Used At">{new Date(coin.usedAt).toLocaleString()}</td>
                 )}
                 {!showUsedCoins && !showExpiredCoins && (
                   <>
-                    <td>
+                    <td data-label="Copy Code">
                       <button onClick={() => handleCopyToClipboard(coin.shareableCode)}>
                         Copy Code
                       </button>
                     </td>
-                    <td>
+                    <td data-label="Redeem Code">
                       <button onClick={() => redeemCoin(coinId)}>Redeem Code</button>
                     </td>
                   </>

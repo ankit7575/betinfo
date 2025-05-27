@@ -1,52 +1,101 @@
-/* Container for the profile section */
 .profile-container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    margin: 20px auto;
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  max-width: 550px;
+  margin: 28px auto;
+  transition: box-shadow 0.2s;
+}
+
+.profile-header h2 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.profile-details table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.profile-details table td {
+  padding: 14px 10px;
+  text-align: left;
+  font-size: 1.08rem;
+  color: #4a4a4a;
+}
+
+.profile-label {
+  font-weight: bold;
+  color: #20223a;
+  min-width: 110px;
+}
+
+.profile-details table tr:nth-child(even) {
+  background-color: #f7fafd;
+}
+.profile-details table tr:hover {
+  background-color: #e7f6fc;
+}
+
+.profile-details {
+  padding: 10px 4px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+/* --- MOBILE RESPONSIVE STYLES --- */
+@media (max-width: 600px) {
+  .profile-container {
+    padding: 10px 3vw;
+    margin: 14px 0;
+    max-width: 99vw;
+    border-radius: 7px;
+    box-shadow: 0 1.5px 7px rgba(0,0,0,0.09);
   }
-  
-  /* Profile Header */
   .profile-header h2 {
-    font-size: 1.8rem;
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
+    font-size: 1.25rem;
+    margin-bottom: 12px;
   }
-  
-  /* Table style */
-  .profile-details table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .profile-details table td {
-    padding: 12px;
-    text-align: left;
-    font-size: 1rem;
-    color: #555;
-  }
-  
+  .profile-details table td,
   .profile-label {
-    font-weight: bold;
-    color: #333;
+    font-size: 1rem;
+    padding: 11px 5px;
   }
-  
-  /* Add background color to table rows */
-  .profile-details table tr:nth-child(even) {
-    background-color: #f9f9f9;
+  .profile-label {
+    min-width: 80px;
   }
-  
-  .profile-details table tr:hover {
-    background-color: #f1f1f1;
+  .profile-details {
+    padding: 7px 1px;
+    border-radius: 7px;
   }
-  
-  /* For a more polished look */
-  .profile-container .profile-details {
-    padding: 10px;
-    border-radius: 6px;
-    background-color: #f9f9f9;
+  .profile-details table {
+    font-size: 0.98rem;
   }
-  
+}
+
+/* Extra polish: make table display stacked on very small screens */
+@media (max-width: 420px) {
+  .profile-details table,
+  .profile-details tbody,
+  .profile-details tr {
+    display: block;
+    width: 100%;
+  }
+  .profile-details td {
+    display: block;
+    width: 100%;
+    padding: 8px 3vw;
+    text-align: left;
+  }
+  .profile-label {
+    font-size: 1.01rem;
+    margin-bottom: 2px;
+    color: #114099;
+    display: block;
+  }
+}

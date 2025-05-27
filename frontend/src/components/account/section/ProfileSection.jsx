@@ -3,7 +3,7 @@ import './ProfileSection.css';
 
 const ProfileSection = ({ user }) => {
   if (!user) {
-    return <div>No user data available.</div>; // If no user data is present
+    return <div>No user data available.</div>;
   }
 
   return (

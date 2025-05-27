@@ -72,13 +72,13 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 });
 // Get User Details
 exports.getUserDetails = catchAsyncErrors(async (req, res, next) => {
-  // Find user by ID (req.user.id comes from the JWT middleware)
+  if (!req.user) {
+    return next(new ErrorHandler("User not authenticated", 401));
+  }
   const user = await User.findById(req.user.id);
-
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
   }
-
   res.status(200).json({
     success: true,
     user,

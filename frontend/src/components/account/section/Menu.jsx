@@ -33,6 +33,7 @@ const Menu = () => {
             Transactions
           </NavLink>
         </li>
+       
       </ul>
 
       <div className="logout">

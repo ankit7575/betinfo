@@ -8,52 +8,19 @@ const ViewSoccerMatch = () => {
   const dispatch = useDispatch();
   const { loading, error, soccerMatches = [] } = useSelector((state) => state.match || {});
 
-  const now = new Date();
-  const today = new Date(now);
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
   useEffect(() => {
     dispatch(getSoccerMatches());
   }, [dispatch]);
 
-  const isSameDate = (d1, d2) =>
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate();
-
   // === Only show admin-approved matches ===
-  const filteredMatches = soccerMatches.filter(match => match.selected);
-
-  const todayMatches = filteredMatches
-    .filter((match) => {
-      const matchTime = new Date(match.openDate);
-      return (
-        Array.isArray(match.matchRunners) &&
-        match.matchRunners.length >= 2 &&
-        Array.isArray(match.markets) &&
-        match.markets.length > 0 &&
-        matchTime instanceof Date &&
-        !isNaN(matchTime) &&
-        isSameDate(matchTime, today)
-      );
-    })
-    .sort((a, b) => new Date(a.openDate) - new Date(b.openDate));
-
-  const tomorrowMatches = filteredMatches
-    .filter((match) => {
-      const matchTime = new Date(match.openDate);
-      return (
-        Array.isArray(match.matchRunners) &&
-        match.matchRunners.length >= 2 &&
-        Array.isArray(match.markets) &&
-        match.markets.length > 0 &&
-        matchTime instanceof Date &&
-        !isNaN(matchTime) &&
-        isSameDate(matchTime, tomorrow)
-      );
-    })
-    .sort((a, b) => new Date(a.openDate) - new Date(b.openDate));
+  const filteredMatches = soccerMatches.filter(
+    match =>
+      match.selected &&
+      Array.isArray(match.matchRunners) &&
+      match.matchRunners.length >= 2 &&
+      Array.isArray(match.markets) &&
+      match.markets.length > 0
+  );
 
   const formatMatchTime = (openDate) => {
     const matchTime = new Date(openDate);
@@ -70,17 +37,26 @@ const ViewSoccerMatch = () => {
   const openViewTipInNewTab = (eventId, markets) => {
     const matchOddsMarket = markets?.find((m) => m.marketName === 'Match Odds');
     const matchOddsMarketId = matchOddsMarket?.marketId || '';
-    const url = `/viewtip?eventId=${eventId}&marketId=${matchOddsMarketId}`;
-    window.location.href = url; // Open in same tab
+    const url = `/soccertip?eventId=${eventId}&marketId=${matchOddsMarketId}`;
+    window.open(url, '_blank');
   };
 
+  // Utility to determine if we need to show Admin Status column
+  const shouldShowAdminStatus = (matchesToShow) =>
+    matchesToShow.some(
+      (match) => match.adminStatus && match.adminStatus.trim() && match.adminStatus.trim().toLowerCase() !== 'normal'
+    );
+
+  // Single table, all filtered matches
   const renderTable = (matchesToShow) => {
     if (!matchesToShow.length) {
-      return <div className="white">No matches found</div>;
+      return <div className="white">No soccer matches found</div>;
     }
 
+    const showAdminStatus = shouldShowAdminStatus(matchesToShow);
+
     return (
-      <div className="table-responsive mb-4" id="viewtip" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+      <div className="table-responsive mb-4" style={{ maxHeight: '500px', overflowY: 'auto' }}>
         <table className="table table-bordered table-hover glow-border">
           <thead className="table-dark">
             <tr>
@@ -89,7 +65,7 @@ const ViewSoccerMatch = () => {
               <th>Match Time</th>
               <th>Status</th>
               <th>Competition</th>
-              <th>Admin Status</th>
+              {showAdminStatus && <th>Pitch Status</th>}
               <th>Action</th>
             </tr>
           </thead>
@@ -100,9 +76,13 @@ const ViewSoccerMatch = () => {
                 (Array.isArray(match.matchRunners)
                   ? match.matchRunners.map((r) => r.runnerName).join(' vs ')
                   : 'N/A');
-              const matchDate = new Date(match.openDate);
-              const status = matchDate > now ? 'Coming' : 'Live';
               const eventId = match.eventId;
+              const adminStatus = match.adminStatus && match.adminStatus.trim();
+
+              // Calculate "Live" or "Upcoming"
+              const now = new Date();
+              const matchDate = new Date(match.openDate);
+              const isLive = matchDate <= now;
 
               return (
                 <tr key={eventId || index}>
@@ -110,18 +90,22 @@ const ViewSoccerMatch = () => {
                   <td>{formatMatchDate(match.openDate)}</td>
                   <td>{formatMatchTime(match.openDate)}</td>
                   <td>
-                    <span
-                      className={`badge ${status === 'Live' ? 'bg-success' : 'bg-warning text-dark'}`}
-                    >
-                      {status}
-                    </span>
+                    {isLive ? (
+                      <span className="badge bg-success">Live</span>
+                    ) : (
+                      <span className="badge bg-warning text-dark">Upcoming</span>
+                    )}
                   </td>
                   <td>{match.competitionName || 'N/A'}</td>
-                  <td>
-                    <span className="badge bg-info text-dark">
-                      {match.adminStatus || 'Normal'}
-                    </span>
-                  </td>
+                  {showAdminStatus && (
+                    <td>
+                      {adminStatus && adminStatus.toLowerCase() !== 'normal' ? (
+                        <span className="badge bg-info text-dark">{adminStatus}</span>
+                      ) : (
+                        ''
+                      )}
+                    </td>
+                  )}
                   <td>
                     <button
                       className="btn btn-primary view-tip"
@@ -146,12 +130,7 @@ const ViewSoccerMatch = () => {
     <div className="container-fluid">
       <div className="p-5 mt-4 pt-1">
         <h1 className="mb-4 white">Soccer Match Tips</h1>
-
-        <h3 className="white mb-3">Today’s Matches</h3>
-        {renderTable(todayMatches)}
-
-        <h3 className="white mt-4 mb-3">Tomorrow’s Matches</h3>
-        {renderTable(tomorrowMatches)}
+        {renderTable(filteredMatches)}
       </div>
     </div>
   );

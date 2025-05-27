@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="footer pt-5">
         <div className="row">
           {/* Logo & Description */}
-          <div className="col-lg-3">
+          <div className="col-lg-3 col-md-4 col-sm-4 col-12">
             <div className="footer-logo">
               <img src="../assets/logo.png" className="img-fluid" alt="Astrafin Logo" />
               <p className="mt-4 text-sm white">
@@ -31,7 +31,7 @@ const Footer = () => {
           </div>
 
           {/* Navigation - Quick Links */}
-          <div className="col-lg-2">
+          <div className="col-lg-2 col-md-4 col-sm-4 col-12">
             <h3 className="font-bold text-lg mb-3 newcolor">Quick Links</h3>
             <ul className="list-unstyled2 white">
               {[
@@ -49,7 +49,7 @@ const Footer = () => {
           </div>
 
           {/* Office Address & Contact Form */}
-          <div className="col-lg-7">
+          <div className="col-lg-7 col-md-4 col-sm-4 col-12">
             <div className="row">
               {/* Office Address */}
               <div className="col-lg-6">

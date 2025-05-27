@@ -15,12 +15,11 @@ const CoinCountdown = () => {
     }
   }, [user, dispatch]);
 
-  // Handle countdown timer
+  // Countdown timer
   useEffect(() => {
     if (!user) return;
 
     const now = new Date();
-
     const activeCoin = user?.keys?.flatMap((key) => key.coin || []).find((coin) => {
       if (!coin.usedAt) return false;
       const usedDate = new Date(coin.usedAt);
@@ -56,21 +55,21 @@ const CoinCountdown = () => {
   if (loading || !user) return null;
 
   return (
-    <div className="coin-chatbox">
+    <div className="coin-cc-box">
       {timeLeft ? (
-        <p className="text-info fw-bold mb-0">
-          ⏳ Active coin expires in: <span className="countdown-text">{timeLeft}</span>
-        </p>
+        <span className="cc-text">
+          ⏳ <span className="cc-label">Coin:</span> <span className="cc-countdown">{timeLeft}</span>
+        </span>
       ) : unusedCoins.length > 0 ? (
         <button
-          className="btn btn-warning btn-sm w-100"
+          className="cc-btn cc-btn-yellow"
           onClick={() => (window.location.href = '/redeem')}
         >
-          🎟️ Redeem Coin Now
+          🎟️ Redeem Coin
         </button>
       ) : (
         <button
-          className="btn btn-primary btn-sm w-100"
+          className="cc-btn cc-btn-blue"
           onClick={() => (window.location.href = '/payment')}
         >
           💰 Buy Coin

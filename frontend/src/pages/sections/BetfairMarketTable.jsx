@@ -73,52 +73,46 @@ const BetfairMarketTable = ({ matchData, socket }) => {
     return match?.runnerName || fallback || `Runner ${index + 1}`;
   };
 
- const renderRow = (runner, index) => {
-  const runnerName = getRunnerName(runner.selectionId, runner.runnerName, index);
-  const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0 };
-  const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0 };
-  const isBackHighlight = highlightMap[`${runner.selectionId}-back`];
-  const isLayHighlight = highlightMap[`${runner.selectionId}-lay`];
+  const renderRow = (runner, index) => {
+    const runnerName = getRunnerName(runner.selectionId, runner.runnerName, index);
+    const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0 };
+    const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0 };
+    const isBackHighlight = highlightMap[`${runner.selectionId}-back`];
+    const isLayHighlight = highlightMap[`${runner.selectionId}-lay`];
+
+    return (
+      <tr key={runner.selectionId || runnerName}>
+        <td className="runner-name-cell">{runnerName}</td>
+        <td className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
+          <div className="pending-odds">{backItem.price}</div>
+          <div className="pending-stake">{backItem.size}</div>
+        </td>
+        <td className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
+          <div className="pending-odds">{layItem.price}</div>
+          <div className="pending-stake">{layItem.size}</div>
+        </td>
+      </tr>
+    );
+  };
 
   return (
-    <tr key={runner.selectionId || runnerName}>
-      <td className="runner-name-cell">{runnerName}</td>
-      <td className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
-        <div className="pending-odds">{backItem.price}</div>
-        <div className="pending-stake">{backItem.size}</div>
-      </td>
-      <td className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
-        <div className="pending-odds">{layItem.price}</div>
-        <div className="pending-stake">{layItem.size}</div>
-      </td>
-    </tr>
-  );
-};
-
-
-  return (
-    <div className="container pb-5">
-      <div className="market-header d-flex justify-content-between align-items-center mb-2">
-        <div>
-          <h2>Match Odds</h2>
-          <span>{liveRunners.length} selections</span>
-        </div>
-        <div className="socket-status">
-          {socketConnected && <span className="badge bg-success px-3 py-1">Live</span>}
-        </div>
+    <div className="market-table-compact">
+      <div className="market-header-compact">
+        <span>Match Odds</span>
+        {socketConnected && <span className="live-dot" />}
       </div>
       <table className="market-table">
         <thead>
           <tr>
             <th>Team</th>
-            <th colSpan="1">Back</th>
-            <th colSpan="1">Lay</th>
+            <th>Back</th>
+            <th>Lay</th>
           </tr>
         </thead>
         <tbody>
           {liveRunners.length > 0 ? liveRunners.map(renderRow) : (
             <tr>
-              <td colSpan="7" className="text-center">No runner data available.</td>
+              <td colSpan="3" className="text-center">No runner data.</td>
             </tr>
           )}
         </tbody>

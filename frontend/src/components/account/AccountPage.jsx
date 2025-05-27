@@ -4,7 +4,7 @@ import { logout } from "../../actions/userAction";
 import { useNavigate } from "react-router-dom";
 import "./AccountPage.css";
 
-import Banner from "./section/Banner";
+
 import ProfileSection from "./section/ProfileSection";
 import Keys from "./section/Keys";
 import Coins from "./section/Coins";
@@ -21,11 +21,7 @@ const AccountPage = () => {
 
   const handleSectionChange = (section) => {
     setActiveSection(section.toLowerCase());
-    setSidebarVisible(false);
-  };
-
-  const toggleSidebar = () => {
-    setSidebarVisible((prev) => !prev);
+    setSidebarVisible(false); // close mobile sidebar
   };
 
   const handleLogout = () => {
@@ -63,17 +59,21 @@ const AccountPage = () => {
 
   return (
     <div className="account-page">
-      <Banner />
+    
 
+      {/* Hamburger button for mobile */}
       <button
-        className="sidebar-toggle-btn"
-        onClick={toggleSidebar}
-        aria-label={sidebarVisible ? "Close Sidebar Menu" : "Open Sidebar Menu"}
+        className="mobile-menu-btn"
+        onClick={() => setSidebarVisible(true)}
+        aria-label="Open Account Menu"
       >
-        {sidebarVisible ? "Close Menu" : "Open Menu"}
+        <span className="mobile-hamburger-bar"></span>
+        <span className="mobile-hamburger-bar"></span>
+        <span className="mobile-hamburger-bar"></span>
       </button>
 
-      <div className={`account-container ${sidebarVisible ? "sidebar-open" : ""}`}>
+      <div className="account-container">
+        {/* --- DESKTOP SIDEBAR --- */}
         <aside className="account-sidebar">
           <h2>Account Menu</h2>
           <ul>
@@ -96,6 +96,39 @@ const AccountPage = () => {
             </li>
           </ul>
         </aside>
+
+        {/* --- MOBILE SIDEBAR --- */}
+        <aside className={`account-sidebar-alt${sidebarVisible ? " show" : ""}`}>
+        
+          <h2>Account Menu</h2>
+          <ul>
+            {sections.map((item) => (
+              <li
+                key={item.key}
+                className={activeSection === item.key ? "active" : ""}
+                onClick={() => handleSectionChange(item.key)}
+                aria-label={`Navigate to ${item.label}`}
+              >
+                {item.label}
+              </li>
+            ))}
+            <li
+              className="logout"
+              onClick={handleLogout}
+              aria-label="Log out of your account"
+            >
+              Logout
+            </li>
+          </ul>
+        </aside>
+
+        {/* Backdrop for mobile sidebar (absolute, not fixed) */}
+        {sidebarVisible && (
+          <div
+            className="sidebar-backdrop"
+            onClick={() => setSidebarVisible(false)}
+          />
+        )}
 
         <main className="account-main">
           {loading && <div>Loading user data...</div>}

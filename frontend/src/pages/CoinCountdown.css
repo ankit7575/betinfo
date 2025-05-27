@@ -1,43 +1,93 @@
-.coin-chatbox {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  z-index: 9999;
-  background: #1a1a1a;
-  padding: 1rem 1.25rem;
-  border: 2px solid #0ff;
-  border-radius: 12px;
-  max-width: 240px;
-  min-width: 200px;
+.coin-cc-box {
+  background: transparent;
+  border: 1.2px solid #0ff;
+  border-radius: 7px;
+  padding: 0 7px;
   color: #0ff;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  min-width: 100px;
+  max-height: 32px;
+  font-size: 13px;
+  margin: 0 4px;
+  box-shadow: 0 0 2px #0ff3;
   animation: glowBox 2s infinite alternate;
 }
 
-.countdown-text {
-  font-weight: bold;
+.cc-text {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.cc-label {
+  color: #81f2f0;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.cc-countdown {
   color: #0ff;
+  font-weight: 700;
+  font-size: 13px;
+  margin-left: 2px;
+}
+
+.cc-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px 1px 8px;
+  border-radius: 6px;
+  border: none;
+  margin: 0;
+  min-width: 70px;
+  height: 25px;
+  transition: background 0.2s;
+  cursor: pointer;
+  outline: none;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-btn-yellow {
+  background: #ffe95b;
+  color: #1b2020;
+}
+.cc-btn-blue {
+  background: #3dc2ff;
+  color: #fff;
+}
+.cc-btn-yellow:hover,
+.cc-btn-blue:hover {
+  filter: brightness(1.09);
 }
 
 @keyframes glowBox {
-  0% {
-    border-color: #0ff;
-    box-shadow: 0 0 8px #0ff;
-  }
-  50% {
-    border-color: #f0f;
-    box-shadow: 0 0 10px #f0f;
-  }
-  100% {
-    border-color: #0ff;
-    box-shadow: 0 0 8px #0ff;
-  }
+  0% { border-color: #0ff; box-shadow: 0 0 2px #0ff; }
+  50% { border-color: #f0f; box-shadow: 0 0 4px #f0f; }
+  100% { border-color: #0ff; box-shadow: 0 0 2px #0ff; }
 }
 
-.btn.btn-warning,
-.btn.btn-primary {
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  margin-top: 8px;
+/* Responsive - mobile, further shrink if needed */
+@media (max-width: 575px) {
+  .coin-cc-box {
+    min-width: 75px;
+    font-size: 11px;
+    padding: 0 4px;
+    max-height: 26px;
+  }
+  .cc-text, .cc-countdown {
+    font-size: 10px;
+  }
+  .cc-btn {
+    min-width: 56px;
+    font-size: 9.6px;
+    height: 21px;
+    padding: 1px 6px 0 6px;
+  }
 }

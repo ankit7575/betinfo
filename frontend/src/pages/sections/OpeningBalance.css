@@ -1,276 +1,48 @@
-/* OpeningBalance.css */
-
-/* Animated glowing buttons */
-.animated-button {
-  position: relative;
-  background: transparent;
-  border: 2px solid #00ffc3;
-  color: #00ffc3;
-  transition: all 0.3s ease;
-  font-weight: 600;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.animated-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(120deg, #00ffc3, #00a8ff, #00ffc3);
-  z-index: -1;
-  transition: all 0.4s ease-in-out;
-  opacity: 0.1;
-}
-
-.animated-button:hover::before {
-  left: 0;
-  opacity: 1;
-}
-
-.animated-button:hover {
-  color: #000;
-  background-color: #00ffc3;
-  box-shadow: 0 0 15px #00ffc3, 0 0 30px #00a8ff;
-  border-color: transparent;
-}
-
-/* Custom animated submit button */
-.animated-submit {
-  background-color: #28a745;
+.ob-wrap {
+  background: none;
   border: none;
-  color: #fff;
-  font-weight: bold;
-  transition: 0.3s ease-in-out;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.animated-submit:hover {
-  background-color: #1ed760;
-  box-shadow: 0 0 15px #1ed760;
-  transform: translateY(-1px);
+.ob-toggle-btn {
+  min-width: 32px;
+  height: 32px;
+  font-size: 1.4rem;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px !important;
 }
 
-.bouncing-arrow {
-  position: absolute;
-  bottom: 0%; /* Positioned at 80% from bottom */
-  left: 0;
-  font-size: 4rem;               /* Big arrow */
-  font-weight: bold;            /* Bold */
-  animation: bounceLR 1.2s infinite ease-in-out, colorChange 2s infinite alternate;
-  text-align: center;
-  display: inline-block;
-  color: #00ffc3;                /* Initial color */
+.ob-form {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
 }
 
-/* Optional container needs position: relative if not already */
-.bouncing-arrow-container {
-  position: relative;
-  height: 100px;
+.ob-input {
+  min-width: 75px;
+  font-size: 1.08rem;
+  padding: 0.18rem 0.28rem;
+  border-radius: 5px;
+  border: 2px solid #19ffae;
+  background: #11161c;
+  color: #fff8dc;
 }
 
-/* Bounce left-to-right */
-@keyframes bounceLR {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(10px);
-  }
-}
-
-/* Color shift animation */
-@keyframes colorChange {
-  0% {
-    color: #00ffc3;
-  }
-  100% {
-    color: #00a8ff;
-  }
-}
-
-/* OpeningBalance.css */
-
-/* Card container for col-md-4 */
-.opening-balance-card {
-  background: #11181f;
-  border: 2.5px solid #00ffc340;
-  border-radius: 1.2rem;
-  box-shadow: 0 2px 22px 0 #00ffc322;
-  padding: 1.5rem 1rem 1.1rem 1rem;
-  margin-bottom: 1.7rem;
-  min-height: 200px;
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow 0.3s, border-color 0.4s;
-}
-
-/* Animated glowing buttons */
-.animated-button {
-  position: relative;
-  background: transparent;
-  border: 2px solid #00ffc3;
-  color: #00ffc3;
-  transition: all 0.3s;
-  font-weight: 600;
-  overflow: hidden;
-  z-index: 1;
-  border-radius: 14px;
-  padding: 0.75rem 0.8rem;
-  font-size: 1.1rem;
-  letter-spacing: 0.02em;
-}
-
-.animated-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(120deg, #00ffc3, #00a8ff, #00ffc3);
-  z-index: -1;
-  transition: all 0.4s ease-in-out;
-  opacity: 0.16;
-}
-
-.animated-button:hover::before {
-  left: 0;
-  opacity: 1;
-}
-
-.animated-button:hover,
-.animated-button:focus-visible {
-  color: #000 !important;
-  background: #00ffc3 !important;
-  box-shadow: 0 0 15px #00ffc3, 0 0 30px #00a8ff;
-  border-color: transparent !important;
-}
-
-.animated-button[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Custom animated submit button */
-.animated-submit,
-.btn-success {
-  background-color: #28a745 !important;
-  border: none;
-  color: #fff !important;
-  font-weight: bold;
-  transition: 0.3s;
-  border-radius: 12px;
-  min-width: 130px;
-}
-
-.animated-submit:hover,
-.btn-success:hover {
-  background-color: #1ed760 !important;
-  box-shadow: 0 0 15px #1ed760;
-  transform: translateY(-1px);
-  color: #111 !important;
-}
-.headingnew{
-  font-size: 20px;
-}
-
-/* Custom Amount Input */
-.form-control[type="number"] {
-  background: #181b23;
-  border: 2px solid #00ffc3;
-  color: #ffe999;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: border-color 0.3s, color 0.3s;
-}
-
-.form-control[type="number"]:focus {
-  border-color: #00a8ff;
-  color: #00ffc3;
-  background: #191c23;
-  box-shadow: 0 0 0 2px #00a8ff55;
-}
-
-.input-group {
-  gap: 0.5rem;
-}
-
-.input-group .form-control {
-  min-width: 0;
-}
-
-/* Toggle Button (Turn ON/OFF) */
-.btn-danger,
-.btn-success {
-  border-radius: 8px;
-  font-weight: 600;
-  padding: 0.25rem 0.9rem;
+.ob-submit-btn {
+  min-width: 42px;
   font-size: 1rem;
-  border: 2px solid #00ffc3;
-  margin-bottom: 8px;
-  transition: border-color 0.2s, background 0.3s;
-}
-
-/* Bouncing Arrow */
-.bouncing-arrow {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  font-size: 3.3rem;
-  font-weight: bold;
-  animation: bounceLR 1.2s infinite ease-in-out, colorChange 2s infinite alternate;
-  text-align: center;
-  display: inline-block;
-  color: #00ffc3;
-}
-
-.bouncing-arrow-container {
-  position: relative;
-  height: 60px;
-}
-
-/* Animations */
-@keyframes bounceLR {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(10px); }
-}
-@keyframes colorChange {
-  0%   { color: #00ffc3; }
-  100% { color: #00a8ff; }
-}
-
-/* Responsive for col-md-4 & below */
-@media (max-width: 991px) {
-  .opening-balance-card {
-    padding: 0.8rem 0.4rem 0.7rem 0.4rem;
-    border-radius: 0.8rem;
-    min-height: 130px;
-  }
-  .animated-button {
-    font-size: 1rem;
-    padding: 0.6rem 0.4rem;
-  }
-  .bouncing-arrow {
-    font-size: 2.1rem;
-  }
-}
-
-@media (max-width: 575px) {
-  .opening-balance-card {
-    padding: 0.35rem 0.04rem 0.5rem 0.04rem;
-    border-radius: 0.55rem;
-    min-height: 70px;
-  }
-  .animated-button {
-    padding: 0.45rem 0.12rem;
-    font-size: 0.93rem;
-  }
-  .bouncing-arrow {
-    font-size: 1.2rem;
-  }
+  margin-left: 4px;
+  border-radius: 6px;
+  padding: 0.14rem 0.55rem;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -279,3 +51,9 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 input[type="number"] { -moz-appearance: textfield; }
+
+@media (max-width: 575px) {
+  .ob-toggle-btn { min-width: 26px; height: 26px; font-size: 1.11rem; }
+  .ob-input { min-width: 55px; font-size: 0.99rem; }
+  .ob-submit-btn { min-width: 29px; font-size: 0.91rem; }
+}

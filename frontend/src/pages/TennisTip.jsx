@@ -9,13 +9,13 @@ import './ViewTip.css';
 // Sections and Components
 import AppLayout from '../layout';
 import Footer from '../components/Footer';
-import ScoreboardCard from './sections/ScoreboardCard';
 import OpeningBalance from './sections/OpeningBalance';
 import LiveTipsTable from './sections/LiveTipsTable';
 import IframeBox from './sections/IframeBox';
 import TipHistoryTable from './sections/TipHistoryTable';
 import BalanceDisplay from './sections/BalanceDisplay';
 import BetfairMarketTable from './sections/BetfairMarketTable';
+import TennisScoreboardCard from './sections/TennisScoreboardCard'; // import the tennis scoreboard
 
 // Redux Actions
 import {
@@ -28,7 +28,7 @@ import {
 
 import { loadUser } from '../actions/userAction';
 
-const ViewTip = () => {
+const TennisTip = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -143,24 +143,7 @@ const ViewTip = () => {
   const liveTipsToShow =
     latestOddsHistory.length > 0 ? latestOddsHistory : getFallbackLatestTips();
 
-  // Fallback scoreboard
-  const fallbackScoreboard = {
-    title: 'Scoreboard',
-    team1: match?.matchRunners?.[0]?.runnerName || 'Team A',
-    team2: match?.matchRunners?.[1]?.runnerName || 'Team B',
-    score1: '0',
-    score2: '0',
-    wicket1: '0',
-    wicket2: '0',
-    ballsDone1: 0,
-    ballsDone2: 0,
-    target: 0,
-    required: '-',
-    recentBalls: [],
-    status: 'Match has not started yet or no live data available',
-  };
-
-  // Alerts and UI Logic
+  // ALERTS and UI Logic
   const now = new Date();
   const activeCoinInUse = user?.keys?.some((key) =>
     key.coin?.some((c) => {
@@ -184,6 +167,24 @@ const ViewTip = () => {
       </div>
     );
   }
+
+  // ---- Fallback tennis scoreboard demo ----
+  // Use your tennis scoreboard from Redux, API, etc, if available.
+  const tennisScoreboardObj = scoreboard?.type === "tennis"
+    ? scoreboard
+    : {
+      // Demo fallback example
+      title: match?.eventName || "Tennis Match",
+      player1: match?.matchRunners?.[0]?.runnerName || "Player 1",
+      player2: match?.matchRunners?.[1]?.runnerName || "Player 2",
+      setScores1: [0, 0, 0],
+      setScores2: [0, 0, 0],
+      currentSet: 0,
+      currentGameScore1: 0,
+      currentGameScore2: 0,
+      server: 0, // player1 serving
+      isTB: false,
+    };
 
   return (
     <>
@@ -236,32 +237,26 @@ const ViewTip = () => {
             )}
 
             {/* Scoreboard & Market/Tips */}
-           
-             
             <div className="row">
               <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
-   <OpeningBalance
-              investmentAmount={investmentAmount}
-              setInvestmentAmount={setInvestmentAmount}
-              investmentLoading={investmentLoading}
-              handleSubmit={handleInvestmentSubmit}
-            />
+                <OpeningBalance
+                  investmentAmount={investmentAmount}
+                  setInvestmentAmount={setInvestmentAmount}
+                  investmentLoading={investmentLoading}
+                  handleSubmit={handleInvestmentSubmit}
+                />
               </div>
               <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
-<BalanceDisplay amount={userOddsAndInvestment?.openingbalance} />
+                <BalanceDisplay amount={userOddsAndInvestment?.openingbalance} />
               </div>
-                <div className='col-lg-12 col-md-12 col-12' >
- <LiveTipsTable
+              <div className='col-lg-12 col-md-12 col-12'>
+                <LiveTipsTable
                   eventId={eventId}
                   userId={userId}
                   fallbackData={liveTipsToShow}
                   socket={socket}
                 />
-                
-          </div>
-         
-
-               
+              </div>
               <div className="col-lg-12 col-md-12 col-sm-12">
                 <BetfairMarketTable
                   matchData={{
@@ -271,31 +266,25 @@ const ViewTip = () => {
                   }}
                   socket={socket}
                 />
-
               </div>
-        
-                      <div className='col-lg-12 col-12 ' >
- <TipHistoryTable
-              adminBetfairOdds={match?.adminBetfairOdds || []}
-              adminOpeningBalance={match?.openingbalance || 200000}
-              userOpeningBalance={userOddsAndInvestment?.openingbalance || 0}
-              userId={userOddsAndInvestment?.userId}
-              socket={socket}
-            />
-          </div>
+              <div className='col-lg-12 col-12'>
+                <TipHistoryTable
+                  adminBetfairOdds={match?.adminBetfairOdds || []}
+                  adminOpeningBalance={match?.openingbalance || 200000}
+                  userOpeningBalance={userOddsAndInvestment?.openingbalance || 0}
+                  userId={userOddsAndInvestment?.userId}
+                  socket={socket}
+                />
+              </div>
             </div>
-
-            {/* Admin & User Tips History */}
-           
           </div>
-          
+
           {/* Sidebar Column */}
           <div className="col-lg-4 col-md-4 col-sm-4 col-12">
-           <ScoreboardCard
-              scoreboard={scoreboard?.team1 ? scoreboard : fallbackScoreboard}
-              socket={socket}
-            />
-            
+            {/* Tennis Scoreboard */}
+            <TennisScoreboardCard scoreboard={tennisScoreboardObj} socket={socket} />
+
+            {/* iFrame for stream */}
             <IframeBox
               eventId={eventId}
               iframeLoaded={iframeLoaded}
@@ -306,7 +295,7 @@ const ViewTip = () => {
           </div>
 
         </div>
-        
+
       </div>
 
       <Footer />
@@ -314,4 +303,4 @@ const ViewTip = () => {
   );
 };
 
-export default ViewTip;
+export default TennisTip;

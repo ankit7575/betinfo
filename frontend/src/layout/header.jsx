@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Layout, Button, Drawer } from "antd";
-import {  useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { MenuOutlined } from "@ant-design/icons";
 import logo from "../assets/logo.png";
-
+import CoinCountdown from '../pages/CoinCountdown';
 const { Header } = Layout;
 
 const StyledHeader = styled(Header)`
@@ -15,13 +15,15 @@ const StyledHeader = styled(Header)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  background: rgb(0, 0, 0);
-  border-bottom: 1px solid #8b8b8b;
-  height: auto;
+  padding: 10px 10px;
+  background: #000;
+  border-bottom: 1px solid #555;
+  height: 55px;
+  min-height: 55px;
 
   @media (max-width: 768px) {
-    padding: 10px 20px;
+    padding: 2px 4px;
+    height: 42px;
   }
 `;
 
@@ -33,7 +35,7 @@ const LogoContainer = styled.div`
 const NavContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 12px;
 
   @media (max-width: 768px) {
     display: none;
@@ -41,55 +43,57 @@ const NavContainer = styled.div`
 `;
 
 const MobileMenuIcon = styled(MenuOutlined)`
-  font-size: 24px;
+  font-size: 25px;
   cursor: pointer;
   display: none;
-
+  margin-left: 10px;
+color:white;
   @media (max-width: 768px) {
     display: block;
   }
 `;
 
 const StyledButton = styled(Button)`
-  border-radius: 30px;
-  font-size: 16px;
-  font-weight: bold;
-  padding: 10px 16px;
-  background: rgba(63, 139, 152, 1);
-  color: rgb(255, 255, 255);
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 10px;
+  height: 28px;
+  background: #3f8b98;
+  color: #fff;
   border: none;
+  margin-left: 4px;
 
   &:hover,
   &:focus,
   &:active {
-    background: rgba(63, 139, 152, 1) !important;
-    color: #ffffff !important;
+    background: #3f8b98 !important;
+    color: #fff !important;
   }
 `;
 
 const StyledLink = styled.span`
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   text-decoration: none;
-  color: white;
-  padding-bottom: 5px;
+  color: #fff;
   cursor: pointer;
+  padding: 0 2px;
 
   &:hover {
-    color: rgb(255, 255, 255);
+    color: #6afcff;
   }
 `;
 
 const AppLayout = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
-
   const location = useLocation();
 
   const handleNavigateAndReload = (path) => {
     if (location.pathname === path) {
-      window.location.reload(); // If already on same page, reload
+      window.location.reload();
     } else {
-      window.location.href = path; // Navigate and reload
+      window.location.href = path;
     }
   };
 
@@ -98,72 +102,64 @@ const AppLayout = () => {
   };
 
   return (
-    <Layout style={{ paddingTop: "80px" }}>
+    <Layout style={{ paddingTop: "48px", background: "transparent" }}>
       <StyledHeader>
         <LogoContainer>
           <img
             src={logo}
             alt="astrafin"
-            width="285"
-            height="65"
-            style={{ cursor: "pointer" }}
+            width="110"
+            height="28"
+            style={{ cursor: "pointer", objectFit: "contain" }}
             onClick={() => handleNavigateAndReload("/")}
           />
         </LogoContainer>
-
         {/* Desktop Navigation */}
         <NavContainer>
           <StyledLink onClick={() => handleNavigateAndReload("/")}>Home</StyledLink>
-          <StyledLink onClick={() => handleNavigateAndReload("/about")}>About Us</StyledLink>
+          <StyledLink onClick={() => handleNavigateAndReload("/about")}>About</StyledLink>
           <StyledLink onClick={() => handleNavigateAndReload("/contact")}>Contact</StyledLink>
           <StyledButton onClick={handleOpenAccount}>Account</StyledButton>
+          <CoinCountdown />
         </NavContainer>
-
         {/* Mobile Menu Icon */}
         <MobileMenuIcon onClick={() => setDrawerVisible(true)} />
-
         {/* Mobile Drawer Menu */}
         <Drawer
-          title="Menu"
+          title={null}
           placement="right"
           closable
           onClose={() => setDrawerVisible(false)}
           open={drawerVisible}
-          width="250px"
+          width="170px"
+          bodyStyle={{ padding: "10px 8px" }}
+          headerStyle={{ display: "none" }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div className="bgblack" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <StyledLink
               onClick={() => {
                 setDrawerVisible(false);
                 handleNavigateAndReload("/");
               }}
-            >
-              Home
-            </StyledLink>
+            >Home</StyledLink>
             <StyledLink
               onClick={() => {
                 setDrawerVisible(false);
                 handleNavigateAndReload("/about");
               }}
-            >
-              About
-            </StyledLink>
+            >About</StyledLink>
             <StyledLink
               onClick={() => {
                 setDrawerVisible(false);
                 handleNavigateAndReload("/contact");
               }}
-            >
-              Contact
-            </StyledLink>
+            >Contact</StyledLink>
             <StyledButton
               onClick={() => {
                 setDrawerVisible(false);
                 handleOpenAccount();
               }}
-            >
-              Account
-            </StyledButton>
+            >Account</StyledButton>
           </div>
         </Drawer>
       </StyledHeader>

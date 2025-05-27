@@ -25,7 +25,7 @@ const OpeningBalance = ({
     <div className="card p-3 mb-3 bg-dark text-white border-0">
       <div className="row">
         <div className="col-12 d-flex justify-content-between align-items-center">
-          <h2 className="fw-bold mb-3 headingnew m-0">Add Proposed Betting Amount</h2>
+          <h5 className="fw-bold   m-0">Add Amount</h5>
           <Button
             variant={showAmountFields ? "danger" : "success"}
             size="sm"
@@ -36,22 +36,29 @@ const OpeningBalance = ({
           </Button>
         </div>
         <div className="col-12 mt-3">
-          {showAmountFields && (
-            <Form onSubmit={handleFormSubmit}>
-              <InputGroup>
-                <Form.Control
-                  type="number"
-                  placeholder="Enter Custom Amount"
-                  value={investmentAmount}
-                  onChange={(e) => setInvestmentAmount(Number(e.target.value))}
-                  disabled={investmentLoading}
-                />
-                <Button type="submit" variant="success" disabled={investmentLoading}>
-                  {investmentLoading ? 'Submitting...' : 'Add Opening Amount'}
-                </Button>
-              </InputGroup>
-            </Form>
-          )}
+           {showAmountFields && (
+        <Form onSubmit={handleFormSubmit} className="ob-form">
+          <InputGroup>
+            <Form.Control
+              type="number"
+              placeholder="Amount"
+              value={investmentAmount}
+              onChange={(e) => setInvestmentAmount(Number(e.target.value))}
+              disabled={investmentLoading}
+              className="ob-input"
+              autoFocus
+            />
+            <Button
+              type="submit"
+              variant="success"
+              disabled={investmentLoading}
+              className="ob-submit-btn"
+            >
+              {investmentLoading ? '...' : 'Add'}
+            </Button>
+          </InputGroup>
+        </Form>
+      )}
         </div>
       </div>
     </div>

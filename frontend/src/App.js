@@ -25,6 +25,9 @@ const Transactionsection = lazy(() => import('./components/account/section/Trans
 const MatchDataPage = lazy(() => import('./components/Matchdashboard/Matchdatapage.jsx'));
 const PageNotFound = lazy(() => import('./pages/Pagenotfound.jsx'));
 const ViewTip = lazy(() => import('./pages/ViewTip.jsx'));
+const SoccerTip = lazy(() => import('./pages/SoccerTip.jsx'));
+const TennisTip = lazy(() => import('./pages/TennisTip.jsx'));
+
 const MatchOddsTable  = lazy(() => import('./pages/MatchOddsTable.jsx'));
 // Betfair (Correct based on pages/betfair)
 const Adddata = lazy(() => import('./components/dashboard/pages/ods/Adddata'));
@@ -209,6 +212,22 @@ const App = () => {
             element={
               <ProtectedRoute isAdmin={false} requiredRole={['user']}>
                 <ViewTip />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/soccertip"
+            element={
+              <ProtectedRoute isAdmin={false} requiredRole={['user']}>
+                <SoccerTip />
+              </ProtectedRoute>
+            }
+          />
+                 <Route
+            path="/tennisTip"
+            element={
+              <ProtectedRoute isAdmin={false} requiredRole={['user']}>
+                <TennisTip />
               </ProtectedRoute>
             }
           />

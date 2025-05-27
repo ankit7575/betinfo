@@ -1,201 +1,217 @@
-/* Main scoreboard card, responsive background positioning */
-.scoreboard-card-neo {
-    background: url(https://ankitvashist.com/cricket.webp) no-repeat center bottom !important;
-    background-size: cover !important;
-    border-radius: 1.7rem !important;
-    box-shadow: 0 6px 28px #0022333c;
-    padding: 2.3rem 1rem !important;
-    margin-bottom: 2.5rem;
-    border: 2px solid #00ffc366;
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    max-width: 100vw;
-    min-width: 0;
-}
-.scoreboard-card-neo::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgb(0 0 0 / 60%);
-  z-index: 0;
-}
-.scoreboard-card-neo > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Row layout with large gaps, never scrolls */
-.scoreboard-row-ultragap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 100px;
-  padding: 0 2.5rem;
-  border-radius: 1.7rem;
-  min-height: 90px;
-  flex-wrap: wrap;
-  width: 100%;
-  max-width: 100vw;
-  min-width: 0;
-  overflow-x: hidden !important;
-}
-.scoreboard-row-ultragap > * {
-  min-width: 0;
-  flex: 1 1 0;
-  text-align: center;
-}
-
-/* Shrink/grow blocks for responsiveness */
-.sb-livebadge-ultra,
-.sb-title-ultra,
-.sb-team-ultra,
-.sb-overspill,
-.sb-recentballs-ultra {
-  flex-shrink: 1;
-  flex-grow: 1;
-  min-width: 0;
-}
-
-.sb-livebadge-ultra {
-  min-width: 80px;
-  font-size: 1.05rem;
-  background: #1ed760 !important;
-  color: #181b23 !important;
-  border-radius: 17px;
-  font-weight: 800;
-  padding: 0.4em 0.9em;
-  letter-spacing: 1.5px;
-  box-shadow: 0 2px 8px #00ffc355;
-  margin: 0 2px;
-}
-.sb-livebadge-ultra.live { background: #1ed760 !important; color: #181b23 !important;}
-.sb-livebadge-ultra:not(.live) { background: #fa5252 !important; color: #fff !important;}
-
-.sb-title-ultra {
-  color: #00ffc3;
-  font-size: 1.10em;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-shadow: 0 2px 7px #00ffc33a;
-  min-width: 65px;
-  margin: 0 2px;
-}
-.sb-team-ultra {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-  min-width: 0;
-}
-.sb-teamname {
-  color: #ffe999;
-  font-weight: 600;
-  font-size: 1.03em;
-  letter-spacing: 0.03em;
-  min-width: 30px;
-}
-.sb-scorepill {
-
-  color: #00ffc3;
-  font-weight: 700;
-  border-radius: 17px;
-  font-size: 1.01em;
-  padding: 5px 12px;
-
-  letter-spacing: 0.02em;
-  min-width: 36px;
-}
-.sb-overspill {
-  background: #202f2a;
-  color: #b0eaff;
-  font-weight: 700;
-  border-radius: 9px;
-  font-size: 1.01em;
-  padding: 4px 10px;
-  border: 1.5px solid #00ffc366;
-  box-shadow: 0 1px 7px #00ffc333;
-  letter-spacing: 0.03em;
-  min-width: 40px;
-}
-
-/* --- BIG SINGLE BALL CIRCLE --- */
-.sb-recentballs-ultra {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-}
-.sb-ballpill {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 55px;
-  height: 55px;
-  font-size: 1.32em;
-  font-weight: 800;
-  border-radius: 50%;
-
-  color: #ffe93a;
-
-
-  letter-spacing: 1.5px;
-  text-align: center;
-  transition: 0.15s;
-}
-
-/* Ball color variations (optional) */
-.sb-ballpill.wicket {
-  background: #fc2641;
+.fancy-card-scoreboard.mini {
+  background: #14161e;
   color: #fff;
-  border-color: #b70c2d;
-}
-.sb-ballpill.boundary {
-  background: #ffe93a;
-  color: #222;
-  border-color: #cbb300;
-}
-.sb-ballpill.dot {
-  background: #323a45;
-  color: #b5c2cc;
-  border-color: #323a45;
-}
-.sb-ballpill.extra {
-  background: #47eaff;
-  color: #1a254d;
-  border-color: #09b6d8;
+  border-radius: 13px;
+  box-shadow: 0 2px 14px 0 #0004;
+  padding: 10px 8px 8px 10px;
+
+  margin: 8px auto;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  border-left: 5px solid #3ef7c5;
 }
 
-/* --- RESPONSIVE BREAKPOINTS --- */
-
-/* md/tablet */
-@media (max-width: 1199px) {
-  .scoreboard-card-neo {
-    background-position: center center !important;
-    padding: 1.2rem 0.25rem !important;
-  }
-  .scoreboard-row-ultragap { gap: 18px; padding: 0 0.4rem; font-size: 0.93rem;}
-  .sb-livebadge-ultra {min-width: 55px; font-size: 0.92rem;}
-  .sb-title-ultra {font-size: 0.99em;}
-  .sb-scorepill {padding: 3px 7px; font-size: 0.95em;}
-  .sb-overspill {padding: 3px 7px; font-size: 0.94em;}
-  .sb-ballpill {width: 38px; height: 38px; font-size: 1.01em;}
+.fancy-scoreboard-header.mini {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+  letter-spacing: 0.04em;
 }
-/* sm/mobile */
-@media (max-width: 767px) {
-  .scoreboard-card-neo {
-    background-position: center center !important;
-    padding: 0.5rem 0.09rem !important;
-    border-radius: 0.7rem !important;
-  }
-  .scoreboard-row-ultragap { gap: 5px; padding: 0 0.08rem; font-size: 0.78rem;}
-  .sb-title-ultra {font-size: 0.91em; min-width: 24px;}
-  .sb-livebadge-ultra {font-size: 0.76rem; min-width: 25px; padding: 2px 3px;}
-  .sb-teamname {font-size: 0.8em;}
-  .sb-scorepill {padding: 1.7px 4.5px; font-size: 0.79em;}
-  .sb-overspill {padding: 1.7px 4.5px; font-size: 0.75em;}
-  .sb-ballpill {width: 20px; height: 20px; font-size: 0.75em;}
+
+.fancy-live-dot, .fancy-offline-dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid #072d24;
+  margin-right: 2px;
+}
+.fancy-live-dot { background: #14ff79; box-shadow: 0 0 5px #00ff6e99;}
+.fancy-offline-dot { background: #ccc; box-shadow: 0 0 3px #222;}
+
+.fancy-live-text.mini {
+  font-size: 0.91rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+
+.fancy-score-title.mini {
+  text-align: left;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #31ffe5;
+  margin-bottom: 4px;
+  text-shadow: none;
+}
+
+.fancy-score-teams.mini {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.fancy-teamname {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #b3f8fc;
+  letter-spacing: 0.01em;
+  min-width: 50px;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fancy-score {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.fancy-divider {
+  font-size: 1.1rem;
+  margin: 0 2px;
+  color: #fce87b;
+}
+
+.fancy-overs {
+  font-size: 0.92rem;
+  color: #ffe895;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+.fancy-balls-row.mini {
+  display: flex;
+  gap: 5px;
+  margin-top: 2px;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 36px;
+}
+
+.fancy-scoreboard-ball {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 25px;
+  height: 25px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  background: #232943;
+  border-radius: 50%;
+  border: 2px solid #1ad1a3;
+  box-shadow: 0 1px 5px #22ffc36b;
+  transition: transform 0.09s;
+  margin: 0;
+  padding: 0;
+}
+.fancy-scoreboard-ball.wicket {
+  background: #ff3977;
+  color: #fff;
+  border-color: #ee2255;
+  box-shadow: 0 0 5px #ff2f5485;
+  transform: scale(1.1);
+}
+.fancy-scoreboard-ball.four {
+  background: #37ffdb;
+  color: #183332;
+  border-color: #13e6b7;
+  box-shadow: 0 0 6px #21ffd985;
+}
+.fancy-scoreboard-ball.six {
+  background: #31c8fd;
+  color: #11254a;
+  border-color: #17a7c7;
+  box-shadow: 0 0 6px #36e0ff73;
+}
+.fancy-scoreboard-ball.extra {
+  background: #ffe066;
+  color: #523b00;
+  border-color: #d1ac1a;
+  box-shadow: 0 0 4px #ffe06677;
+}
+.fancy-scoreboard-ball.dot {
+  background: #e3e8f3;
+  color: #191c22;
+  border-color: #b9c3d8;
+  opacity: 0.93;
+}
+.fancy-noballs {
+  font-size: 1.1rem;
+  opacity: 0.5;
+}
+
+@media (max-width: 500px) {
+  .fancy-card-scoreboard.mini { padding: 6px 2px 4px 6px; border-radius: 7px; }
+  .fancy-score-title.mini { font-size: 0.9rem; }
+  .fancy-teamname, .fancy-score, .fancy-divider, .fancy-overs { font-size: 0.85rem;}
+  .fancy-balls-row.mini { min-height: 24px; }
+  .fancy-scoreboard-ball { width: 17px; height: 17px; font-size: 0.77rem; }
+}
+
+.fancy-card-scoreboard.tennis {
+padding: 10px;
+  /* rest as cricket mini */
+}
+
+.fancy-score-teams.tennis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tennis-sets {
+  display: flex;
+  gap: 5px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.tennis-set-score {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #222e;
+  margin: 0 1.5px;
+  min-width: 26px;
+  text-align: center;
+}
+
+.tennis-set-score.current-set {
+  background: #0ff;
+  color: #191c22;
+  font-weight: 900;
+}
+
+.tennis-game-score {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-left: 10px;
+  color: #ffd800;
+}
+
+.tennis-current-set-label {
+  text-align: right;
+  font-size: 1.05rem;
+  color: #96ffff;
+  margin-top: 3px;
+}
+.tennis-tb {
+  font-size: 0.96em;
+  background: #33f5f5;
+  color: #333;
+  border-radius: 5px;
+  padding: 2px 7px;
+  margin-left: 8px;
+}
+.tennis-serve-dot {
+  color: #ffd800;
+  font-size: 1.1em;
+  margin-left: 4px;
+  vertical-align: middle;
 }
