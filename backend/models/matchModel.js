@@ -106,6 +106,10 @@ const matchSchema = new mongoose.Schema({
   competitionName: { type: String, required: true },
   sportName: { type: String },
 
+  // === Admin Selection and Status fields ===
+  selected: { type: Boolean, default: false },             // Admin can select this match for frontend display
+  adminStatus: { type: String, default: "" },              // Admin can write any custom status (Rainy, Postponed, etc.)
+
   matchRunners: [
     {
       runnerName: { type: String, required: true },
@@ -121,7 +125,7 @@ const matchSchema = new mongoose.Schema({
   ],
 
   openDate: { type: Date, required: true },
-  status: { type: String },
+  status: { type: String }, // System/live/fetched status
 
   scoreData: {
     score: { type: String },

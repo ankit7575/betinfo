@@ -1,77 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { Form, InputGroup, Button, Row, Col } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Form, InputGroup, Button } from 'react-bootstrap';
 import './OpeningBalance.css';
 
-const predefinedAmounts = [1000, 5000, 10000, 15000, 100000];
+const OpeningBalance = ({
+  investmentAmount,
+  setInvestmentAmount,
+  investmentLoading,
+  handleSubmit,
+}) => {
+  // OFF by default
+  const [showAmountFields, setShowAmountFields] = useState(false);
 
-const OpeningBalance = ({ investmentAmount, setInvestmentAmount, investmentLoading, handleSubmit }) => {
-  const [customActive, setCustomActive] = useState(false);
-  const [queuedSubmitAmount, setQueuedSubmitAmount] = useState(null);
-
-  const handleBoxClick = (amount) => {
-    setCustomActive(false);
-    setQueuedSubmitAmount(amount);
-    setInvestmentAmount(amount);
+  // Handle custom amount submit
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    handleSubmit(e);
+    setShowAmountFields(false); // Turn off after submit
   };
 
-  useEffect(() => {
-    if (queuedSubmitAmount !== null && investmentAmount === queuedSubmitAmount) {
-      handleSubmit({ preventDefault: () => {} });
-      setQueuedSubmitAmount(null);
-    }
-  }, [investmentAmount, queuedSubmitAmount, handleSubmit]);
+  // Toggle ON/OFF
+  const handleToggle = () => setShowAmountFields((prev) => !prev);
 
   return (
     <div className="card p-3 mb-3 bg-dark text-white border-0">
       <div className="row">
-        <div className="col-1">
-          <div className="bouncing-arrow">→</div>
+        <div className="col-12 d-flex justify-content-between align-items-center">
+          <h2 className="fw-bold mb-3 headingnew m-0">Add Proposed Betting Amount</h2>
+          <Button
+            variant={showAmountFields ? "danger" : "success"}
+            size="sm"
+            className="ms-3"
+            onClick={handleToggle}
+          >
+            {showAmountFields ? "Turn OFF" : "Turn ON"}
+          </Button>
         </div>
-        <div className="col-11">
-          <h2 className="fw-bold mb-3">Add Proposed Betting Amount</h2>
-
-          <Row className="mb-3">
-            {predefinedAmounts.map((amount, index) => (
-              <Col xs={6} sm={4} md={2} className="mb-2" key={index}>
-                <Button
-                  className="w-100 animated-button"
-                  onClick={() => handleBoxClick(amount)}
-                  active={investmentAmount === amount}
+        <div className="col-12 mt-3">
+          {showAmountFields && (
+            <Form onSubmit={handleFormSubmit}>
+              <InputGroup>
+                <Form.Control
+                  type="number"
+                  placeholder="Enter Custom Amount"
+                  value={investmentAmount}
+                  onChange={(e) => setInvestmentAmount(Number(e.target.value))}
                   disabled={investmentLoading}
-                >
-                  ₹{amount.toLocaleString()}
+                />
+                <Button type="submit" variant="success" disabled={investmentLoading}>
+                  {investmentLoading ? 'Submitting...' : 'Add Opening Amount'}
                 </Button>
-              </Col>
-            ))}
-            <Col xs={6} sm={4} md={2}>
-              <Button
-                className="w-100 animated-button"
-                onClick={() => setCustomActive(true)}
-                active={customActive}
-                disabled={investmentLoading}
-              >
-                Custom
-              </Button>
-            </Col>
-          </Row>
-
-            <Form onSubmit={handleSubmit}>
-            <InputGroup>
-              <Form.Control
-                type="number"
-                placeholder="Enter Custom Amount"
-                value={investmentAmount}
-                onChange={(e) => {
-                  setInvestmentAmount(Number(e.target.value));
-                  setCustomActive(true);
-                }}
-                disabled={investmentLoading}
-              />
-              <Button type="submit" variant="success" disabled={investmentLoading}>
-                {investmentLoading ? 'Submitting...' : 'Add Opening Amount'}
-              </Button>
-            </InputGroup>
-          </Form>
+              </InputGroup>
+            </Form>
+          )}
         </div>
       </div>
     </div>

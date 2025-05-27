@@ -1,280 +1,201 @@
+/* Main scoreboard card, responsive background positioning */
 .scoreboard-card-neo {
-  background: #181b23;
-  border-radius: 1.7rem;
-  box-shadow: 0 6px 28px #0022333c;
-  padding: 2rem 1.5rem 1.6rem 1.5rem;
-  margin-bottom: 2.5rem;
-  border: 2px solid #00ffc366;
-  position: relative;
-  overflow: hidden;
-}
-
-.scoreboard-title {
-  font-weight: 700;
-  color: #00ffc3;
-  letter-spacing: 0.05em;
-}
-
-.scoreboard-live-badge {
-  background: #1ed760 !important;
-  color: #181b23 !important;
-  border-radius: 8px;
-  padding: 0.55em 1.2em;
-  font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: 1.5px;
-  margin-right: 12px;
-}
-
-.teams-row {
-  width: 100%;
-  justify-content: space-between;
-  align-items: center;
-  margin: 1.2rem 0 0.6rem 0;
-  gap: 0.5rem;
-}
-
-.team-block {
-  flex: 1;
-  min-width: 120px;
-  max-width: 50%;
-}
-
-.team-name {
-  font-size: 1.11rem;
-  color: #ffe999;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  margin-bottom: 2px;
-}
-
-.team-score {
-  font-size: 2.4rem;
-  font-weight: bold;
-  color: #00ffc3;
-  letter-spacing: 0.04em;
-  background: #22262e;
-  border-radius: 0.8rem;
-  display: inline-block;
-  padding: 0.2rem 1.1rem;
-  box-shadow: 0 1px 7px #00ffc340;
-  border: 1.7px solid #00ffc3;
-}
-
-.vs-block {
-  font-size: 1.6rem;
-  color: #00a8ff;
-  padding: 0 14px;
-  text-shadow: 0 2px 8px #00ffc352;
-  font-weight: 800;
-}
-
-.slash {
-  color: #aaa;
-  margin: 0 0.08em;
-  font-size: 2rem;
-}
-
-.score-info-chip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #20252e;
-  color: #b0eaff;
-  font-weight: 600;
-  font-size: 1.05rem;
-  border-radius: 9px;
-  box-shadow: 0 1px 7px #00ffc333;
-  padding: 0.65rem 1.2rem;
-  margin-bottom: 0.7rem;
-  border: 1.5px solid #00ffc330;
-}
-
-.score-info-chip span:first-child {
-  color: #00ffc3;
-  font-weight: 700;
-  margin-right: 8px;
-}
-
-.score-info-chip span:last-child {
-  color: #ffe999;
-  font-weight: 800;
-}
-
-.scoreboard-recentballs {
-  padding-top: 7px;
-}
-.recentballs-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.recent-ball {
-  display: inline-block;
-  background: #232d35;
-  border-radius: 7px;
-  color: #00ffc3;
-  font-size: 1.07rem;
-  min-width: 28px;
-  text-align: center;
-  padding: 3px 9px;
-  box-shadow: 0 1px 6px #012b3344;
-  border: 1px solid #00a8ff44;
-  font-weight: 700;
-  transition: 0.17s;
-}
-.recent-ball.wicket-ball {
-  color: #fff;
-  background: #e44040;
-  border: 1px solid #ff5b5b;
-}
-
-@media (max-width: 991px) {
-  .scoreboard-card-neo {
-    padding: 1.1rem 0.4rem 1.3rem 0.4rem;
-    border-radius: 1rem;
-  }
-  .scoreboard-title {
-    font-size: 1.22rem;
-  }
-  .team-score {
-    font-size: 2rem;
-    padding: 0.18rem 0.7rem;
-  }
-  .score-info-chip {
-    padding: 0.45rem 0.6rem;
-    font-size: 0.97rem;
-  }
-}
-
-@media (max-width: 575px) {
-  .scoreboard-card-neo {
-    padding: 0.48rem 0.06rem 1rem 0.06rem;
-    border-radius: 0.7rem;
-  }
-  .scoreboard-title {
-    font-size: 1rem;
-  }
-  .team-score {
-    font-size: 1.2rem;
-    padding: 0.09rem 0.4rem;
-    border-radius: 0.4rem;
-  }
-  .team-block {
-    min-width: 68px;
-  }
-  .score-info-chip {
-    padding: 0.27rem 0.2rem;
-    font-size: 0.9rem;
-  }
-  .recent-ball {
-    font-size: 0.85rem;
-    min-width: 19px;
-    padding: 1.5px 3px;
-  }
-}
-
-/* ANIMATED GRADIENT BORDER for scoreboard card */
-.scoreboard-card-neo {
-  /* Existing styles... */
-  background: #181b23;
-  border-radius: 1.7rem;
-  box-shadow: 0 6px 28px #0022333c;
-  padding: 2rem 1.5rem 1.6rem 1.5rem;
-  margin-bottom: 2.5rem;
-  border: 3px solid;
-  position: relative;
-  overflow: hidden;
-
-  /* Animated border using pseudo-element */
+    background: url(https://ankitvashist.com/cricket.webp) no-repeat center bottom !important;
+    background-size: cover !important;
+    border-radius: 1.7rem !important;
+    box-shadow: 0 6px 28px #0022333c;
+    padding: 2.3rem 1rem !important;
+    margin-bottom: 2.5rem;
+    border: 2px solid #00ffc366;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
 }
 .scoreboard-card-neo::before {
   content: "";
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgb(0 0 0 / 60%);
   z-index: 0;
-  top: -4px; left: -4px; right: -4px; bottom: -4px;
-  border-radius: 2rem;
-  padding: 0;
-  background: linear-gradient(
-      120deg,
-      #00ffc3,
-      #00a8ff,
-      #ffe999,
-      #00ffc3 95%
-    );
-  background-size: 400% 400%;
-  animation: animated-border-move 4s linear infinite;
-  pointer-events: none;
-  border: 3px solid transparent;
 }
-
-@keyframes animated-border-move {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Mask inside content so border glow stays outside */
 .scoreboard-card-neo > * {
   position: relative;
   z-index: 1;
 }
 
-/* ANIMATED TEAM SCORE: glowing border + color shift */
-.team-score {
-  font-size: 2.4rem;
-  font-weight: bold;
-  color: #00ffc3;
-  background: #22262e;
-  border-radius: 0.8rem;
-  display: inline-block;
-  padding: 0.2rem 1.1rem;
-  box-shadow: 0 1px 7px #00ffc340;
-  border: 2.5px solid #00ffc3;
-  border-image: linear-gradient(
-      120deg,
-      #00ffc3 25%,
-      #00a8ff 65%,
-      #ffe999 90%,
-      #00ffc3 100%
-    ) 1;
-  animation: team-score-border-anim 3s ease-in-out infinite;
-  transition: color 0.4s;
+/* Row layout with large gaps, never scrolls */
+.scoreboard-row-ultragap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 100px;
+  padding: 0 2.5rem;
+  border-radius: 1.7rem;
+  min-height: 90px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+  overflow-x: hidden !important;
 }
-@keyframes team-score-border-anim {
-  0%   { border-color: #00ffc3; color: #00ffc3; }
-  30%  { border-color: #00a8ff; color: #00a8ff; }
-  60%  { border-color: #ffe999; color: #ffe999; }
-  100% { border-color: #00ffc3; color: #00ffc3; }
+.scoreboard-row-ultragap > * {
+  min-width: 0;
+  flex: 1 1 0;
+  text-align: center;
 }
 
-/* VS glowing effect */
-.vs-block {
-  font-size: 1.7rem;
-  color: #00a8ff;
-  padding: 0 15px;
+/* Shrink/grow blocks for responsiveness */
+.sb-livebadge-ultra,
+.sb-title-ultra,
+.sb-team-ultra,
+.sb-overspill,
+.sb-recentballs-ultra {
+  flex-shrink: 1;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.sb-livebadge-ultra {
+  min-width: 80px;
+  font-size: 1.05rem;
+  background: #1ed760 !important;
+  color: #181b23 !important;
+  border-radius: 17px;
   font-weight: 800;
-  text-shadow: 0 2px 14px #00ffc365, 0 2px 8px #00a8ff;
-  animation: vs-glow 2.5s ease-in-out infinite;
+  padding: 0.4em 0.9em;
+  letter-spacing: 1.5px;
+  box-shadow: 0 2px 8px #00ffc355;
+  margin: 0 2px;
 }
-@keyframes vs-glow {
-  0%, 100% { color: #00a8ff; text-shadow: 0 2px 14px #00ffc365; }
-  50%      { color: #ffe999; text-shadow: 0 2px 24px #ffe99985; }
+.sb-livebadge-ultra.live { background: #1ed760 !important; color: #181b23 !important;}
+.sb-livebadge-ultra:not(.live) { background: #fa5252 !important; color: #fff !important;}
+
+.sb-title-ultra {
+  color: #00ffc3;
+  font-size: 1.10em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 7px #00ffc33a;
+  min-width: 65px;
+  margin: 0 2px;
+}
+.sb-team-ultra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  min-width: 0;
+}
+.sb-teamname {
+  color: #ffe999;
+  font-weight: 600;
+  font-size: 1.03em;
+  letter-spacing: 0.03em;
+  min-width: 30px;
+}
+.sb-scorepill {
+
+  color: #00ffc3;
+  font-weight: 700;
+  border-radius: 17px;
+  font-size: 1.01em;
+  padding: 5px 12px;
+
+  letter-spacing: 0.02em;
+  min-width: 36px;
+}
+.sb-overspill {
+  background: #202f2a;
+  color: #b0eaff;
+  font-weight: 700;
+  border-radius: 9px;
+  font-size: 1.01em;
+  padding: 4px 10px;
+  border: 1.5px solid #00ffc366;
+  box-shadow: 0 1px 7px #00ffc333;
+  letter-spacing: 0.03em;
+  min-width: 40px;
 }
 
-/* Optionally: Recent balls can also glow slightly */
-.recent-ball {
-  animation: ball-glow 3s ease-in-out infinite;
+/* --- BIG SINGLE BALL CIRCLE --- */
+.sb-recentballs-ultra {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
 }
-@keyframes ball-glow {
-  0%, 100% { box-shadow: 0 1px 6px #00ffc340; }
-  50%      { box-shadow: 0 0 15px #00a8ff70; }
+.sb-ballpill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 55px;
+  height: 55px;
+  font-size: 1.32em;
+  font-weight: 800;
+  border-radius: 50%;
+
+  color: #ffe93a;
+
+
+  letter-spacing: 1.5px;
+  text-align: center;
+  transition: 0.15s;
 }
 
-.recent-ball.wicket-ball {
-  animation: wicket-ball-glow 2.5s infinite;
+/* Ball color variations (optional) */
+.sb-ballpill.wicket {
+  background: #fc2641;
+  color: #fff;
+  border-color: #b70c2d;
 }
-@keyframes wicket-ball-glow {
-  0%, 100% { box-shadow: 0 1px 10px #e4404070; }
-  50%      { box-shadow: 0 0 20px #ffe999b9, 0 0 8px #e44040; }
+.sb-ballpill.boundary {
+  background: #ffe93a;
+  color: #222;
+  border-color: #cbb300;
+}
+.sb-ballpill.dot {
+  background: #323a45;
+  color: #b5c2cc;
+  border-color: #323a45;
+}
+.sb-ballpill.extra {
+  background: #47eaff;
+  color: #1a254d;
+  border-color: #09b6d8;
+}
+
+/* --- RESPONSIVE BREAKPOINTS --- */
+
+/* md/tablet */
+@media (max-width: 1199px) {
+  .scoreboard-card-neo {
+    background-position: center center !important;
+    padding: 1.2rem 0.25rem !important;
+  }
+  .scoreboard-row-ultragap { gap: 18px; padding: 0 0.4rem; font-size: 0.93rem;}
+  .sb-livebadge-ultra {min-width: 55px; font-size: 0.92rem;}
+  .sb-title-ultra {font-size: 0.99em;}
+  .sb-scorepill {padding: 3px 7px; font-size: 0.95em;}
+  .sb-overspill {padding: 3px 7px; font-size: 0.94em;}
+  .sb-ballpill {width: 38px; height: 38px; font-size: 1.01em;}
+}
+/* sm/mobile */
+@media (max-width: 767px) {
+  .scoreboard-card-neo {
+    background-position: center center !important;
+    padding: 0.5rem 0.09rem !important;
+    border-radius: 0.7rem !important;
+  }
+  .scoreboard-row-ultragap { gap: 5px; padding: 0 0.08rem; font-size: 0.78rem;}
+  .sb-title-ultra {font-size: 0.91em; min-width: 24px;}
+  .sb-livebadge-ultra {font-size: 0.76rem; min-width: 25px; padding: 2px 3px;}
+  .sb-teamname {font-size: 0.8em;}
+  .sb-scorepill {padding: 1.7px 4.5px; font-size: 0.79em;}
+  .sb-overspill {padding: 1.7px 4.5px; font-size: 0.75em;}
+  .sb-ballpill {width: 20px; height: 20px; font-size: 0.75em;}
 }

@@ -15,7 +15,7 @@ const StyledHeader = styled(Header)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
+  padding: 10px;
   background: rgb(0, 0, 0);
   border-bottom: 1px solid #8b8b8b;
   height: auto;

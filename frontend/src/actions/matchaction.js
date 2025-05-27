@@ -28,6 +28,21 @@ import {
   USER_ADD_INVESTMENT_SUCCESS,
   USER_ADD_INVESTMENT_FAIL,
   CLEAR_ERRORS,
+      GET_TENNIS_MATCHES_REQUEST,
+    GET_TENNIS_MATCHES_SUCCESS,
+    GET_TENNIS_MATCHES_FAIL,
+    
+  GET_SOCCER_MATCHES_REQUEST,
+  GET_SOCCER_MATCHES_SUCCESS,
+  GET_SOCCER_MATCHES_FAIL,
+
+  UPDATE_MATCH_SELECTED_STATUS_REQUEST,
+  UPDATE_MATCH_SELECTED_STATUS_SUCCESS,
+  UPDATE_MATCH_SELECTED_STATUS_FAIL,
+
+  UPDATE_MATCH_ADMIN_STATUS_REQUEST,
+  UPDATE_MATCH_ADMIN_STATUS_SUCCESS,
+  UPDATE_MATCH_ADMIN_STATUS_FAIL,
 } from '../constants/matchConstants';
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -55,6 +70,62 @@ export const getMatches = (sportId) => async (dispatch) => {
     dispatch({ type: GET_MATCHES_SUCCESS, payload: data?.data || [] });
   } catch (error) {
     dispatch({ type: GET_MATCHES_FAIL, payload: getErrorMessage(error) });
+  }
+};
+
+export const getTennisMatches = () => async (dispatch) => {
+  try {
+    dispatch({ type: GET_TENNIS_MATCHES_REQUEST });
+    const { data } = await axios.get(`${API_URL}/tennis`, getAuthConfig());
+    dispatch({ type: GET_TENNIS_MATCHES_SUCCESS, payload: data?.data || [] });
+  } catch (error) {
+    dispatch({ type: GET_TENNIS_MATCHES_FAIL, payload: getErrorMessage(error) });
+  }
+};
+// Get soccer matches
+export const getSoccerMatches = () => async (dispatch) => {
+  try {
+    dispatch({ type: GET_SOCCER_MATCHES_REQUEST });
+    const { data } = await axios.get(`${API_URL}/soccer`, getAuthConfig());
+    dispatch({ type: GET_SOCCER_MATCHES_SUCCESS, payload: data?.data || [] });
+  } catch (error) {
+    dispatch({ type: GET_SOCCER_MATCHES_FAIL, payload: error?.response?.data?.message || error.message });
+  }
+};
+
+// Admin: update match selected/unselected
+export const updateMatchSelectedStatus = ({ eventId, selected }) => async (dispatch) => {
+  try {
+    dispatch({ type: UPDATE_MATCH_SELECTED_STATUS_REQUEST });
+    const { data } = await axios.post(
+      `${API_URL}/update-selected`,
+      { eventId, selected },
+      getAuthConfig()
+    );
+    dispatch({ type: UPDATE_MATCH_SELECTED_STATUS_SUCCESS, payload: data.data });
+  } catch (error) {
+    dispatch({
+      type: UPDATE_MATCH_SELECTED_STATUS_FAIL,
+      payload: error?.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Admin: update admin status for a match
+export const updateMatchAdminStatus = ({ eventId, adminStatus }) => async (dispatch) => {
+  try {
+    dispatch({ type: UPDATE_MATCH_ADMIN_STATUS_REQUEST });
+    const { data } = await axios.post(
+      `${API_URL}/update-admin-status`, // <-- use correct endpoint!
+      { eventId, adminStatus },
+      getAuthConfig()
+    );
+    dispatch({ type: UPDATE_MATCH_ADMIN_STATUS_SUCCESS, payload: data.data });
+  } catch (error) {
+    dispatch({
+      type: UPDATE_MATCH_ADMIN_STATUS_FAIL,
+      payload: error?.response?.data?.message || error.message,
+    });
   }
 };
 

@@ -128,5 +128,5 @@
     "webpack": "^5.95.0",
     "webpack-cli": "^5.1.4"
   },
-  "proxy": "https://backend.betinfo.live/api/v1"
+  "proxy": "http://192.168.1.7:4000"
 }

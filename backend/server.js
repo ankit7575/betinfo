@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const connectDatabase = require("./config/database");
 const app = require("./app");
 
+// Controllers
 const {
   getUserMatchOddsAndInvestment,
   getBetfairOddsForRunner,
@@ -41,6 +42,18 @@ const io = new Server(server, {
     credentials: true
   }
 });
+
+// ---- ADD REDIS ADAPTER FOR CLUSTER SUPPORT ----
+const { createAdapter } = require('@socket.io/redis-adapter');
+const { createClient } = require('ioredis');
+
+// Use default Redis host/port, update if you use remote Redis!
+const pubClient = createClient({ host: '127.0.0.1', port: 6379 });
+const subClient = pubClient.duplicate();
+
+io.adapter(createAdapter(pubClient, subClient));
+
+// -----------------------------------------------
 
 // Make io available in all requests (for controllers)
 app.set("io", io);

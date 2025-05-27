@@ -1,60 +1,102 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Table } from 'react-bootstrap';
 import './LiveTipsTable.css';
 
-const LiveTipsTable = ({ socket, userId, eventId }) => {
-  const [socketConnected, setSocketConnected] = useState(false);
-  const [oddsData, setOddsData] = useState([]);
-  const [error, setError] = useState(null);
+// Helper to find tip in fallback by selectionId or runnerName
+const findTipInFallback = (tip, fallbackData) =>
+  fallbackData.find(f =>
+    f.runnerName === tip.runnerName &&
+    f.selectionId === tip.selectionId
+  );
 
-  // 👉 Initial socket setup
+const LiveTipsTable = ({ fallbackData = [], error = null, socket, eventId, userId }) => {
+  const [liveTips, setLiveTips] = useState([]);
+  const [isSocketLive, setIsSocketLive] = useState(false);
+
+  // --- Use fallbackData as backup, and to set initial tips ---
   useEffect(() => {
-    if (!socket) return;
-
-    const handleConnect = () => {
-      console.log('✅ Socket connected (LiveTipsTable)');
-      setSocketConnected(true);
-
-      if (userId && eventId) {
-        socket.emit('requestOddsUpdate', { eventId, userId });
-      }
-    };
-
-    const handleDisconnect = () => {
-      console.log('❌ Socket disconnected (LiveTipsTable)');
-      setSocketConnected(false);
-    };
-
-    const handleOddsUpdate = (data) => {
-      if (data?.eventId !== eventId) return;
-
-      if (!data?.success) {
-        setError(data?.message || "Failed to fetch odds.");
-        setOddsData([]);
-        return;
-      }
-
-      setOddsData(data.oddsHistory || []);
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('oddsUpdated', handleOddsUpdate);
-
-    return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('oddsUpdated', handleOddsUpdate);
-    };
-  }, [socket, userId, eventId]);
-
-  // 🔁 Re-emit if socket is already connected later
-  useEffect(() => {
-    if (socket && socketConnected && userId && eventId) {
-      socket.emit('requestOddsUpdate', { eventId, userId });
+    if (!isSocketLive && fallbackData && fallbackData.length > 0) {
+      setLiveTips(
+        fallbackData.map(tip => {
+          const { expiresAt, ...rest } = tip;
+          return { ...rest, _receivedAt: Date.now() };
+        })
+      );
     }
-  }, [socket, socketConnected, userId, eventId]);
+  }, [fallbackData, isSocketLive]);
 
+  // --- Listen for Socket.IO tip updates ---
+  useEffect(() => {
+    if (!socket || !eventId || !userId) return;
+    const handleTipUpdate = (data) => {
+      if (data?.eventId !== eventId || !Array.isArray(data.tips)) return;
+      setIsSocketLive(true);
+      setLiveTips(
+        data.tips.map(tip => {
+          const { expiresAt, ...rest } = tip;
+          return { ...rest, _receivedAt: Date.now() };
+        })
+      );
+    };
+
+    // Listen for custom socket event
+    socket.on('userTipsUpdate', handleTipUpdate);
+
+    // Optionally, request tips update immediately
+    socket.emit('requestUserTipsUpdate', { eventId, userId });
+
+    // Clean up on unmount
+    return () => {
+      socket.off('userTipsUpdate', handleTipUpdate);
+    };
+  }, [socket, eventId, userId]);
+
+  // --- Remove expired tips every 3 seconds ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setLiveTips(tips =>
+        tips.filter(tip => {
+          const original = findTipInFallback(tip, fallbackData) || {};
+          if (original.expiresAt) {
+            return new Date(original.expiresAt) > now;
+          }
+          return now - (tip._receivedAt || 0) < 180000;
+        })
+      );
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [fallbackData]);
+
+  // --- Column visibility logic as before ---
+  const visibleColumns = useMemo(() => {
+    const hasValue = getter =>
+      liveTips.some(item => getter(item) !== 0);
+    return {
+      backOdds: hasValue(item => item.odds?.back ?? 0),
+      backAmount: hasValue(item => item.Ammount?.back ?? 0),
+      backProfit: hasValue(item => item.Profit?.back ?? 0),
+      layOdds: hasValue(item => item.odds?.lay ?? 0),
+      layAmount: hasValue(item => item.Ammount?.lay ?? 0),
+      layProfit: hasValue(item => item.Profit?.lay ?? 0),
+    };
+  }, [liveTips]);
+
+  // --- Filter out empty tips ---
+  const filteredTips = useMemo(
+    () =>
+      liveTips.filter(item =>
+        (item.odds?.back && item.odds?.back !== 0) ||
+        (item.odds?.lay && item.odds?.lay !== 0) ||
+        (item.Ammount?.back && item.Ammount?.back !== 0) ||
+        (item.Ammount?.lay && item.Ammount?.lay !== 0) ||
+        (item.Profit?.back && item.Profit?.back !== 0) ||
+        (item.Profit?.lay && item.Profit?.lay !== 0)
+      ),
+    [liveTips]
+  );
+
+  const display = val => (val === 0 ? '' : val?.toFixed(2));
   const renderError = () => (
     <tr>
       <td colSpan="7" className="text-center text-danger">{error}</td>
@@ -62,57 +104,67 @@ const LiveTipsTable = ({ socket, userId, eventId }) => {
   );
 
   return (
-    <div className='pb-5'>
+    <div className=''>
       <div className="live-tips-card">
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <h2 className="fw-bold text-white">Live Betting Tips</h2>
-            {socketConnected && (
-              <span style={{
-                padding: '4px 12px',
-                borderRadius: '8px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: '14px',
-              }}>
-                Live
-              </span>
-            )}
+            {isSocketLive && <span className="badge bg-success">Live</span>}
           </div>
-
           <div className="live-tips-scroll">
             <Table bordered hover responsive className="table-striped align-middle shadow-sm live-tips-table">
               <thead className="table-dark">
                 <tr>
-                  <th>Runner</th>
-                  <th>Back Odds</th>
-                  <th>Back Amount</th>
-                  <th>Back Profit</th>
-                  <th>Lay Odds</th>
-                  <th>Lay Amount</th>
-                  <th>Lay Profit</th>
+                  <th className="Runner">Team</th>
+                  {visibleColumns.backOdds && <th className="Odds1">Back Odds</th>}
+                  {visibleColumns.backAmount && <th className="Amount1">Back Amount</th>}
+                  {visibleColumns.backProfit && <th className="Profit1">Back Profit</th>}
+                  {visibleColumns.layOdds && <th className="Odds2">Lay Odds</th>}
+                  {visibleColumns.layAmount && <th className="Amount2">Lay Amount</th>}
+                  {visibleColumns.layProfit && <th className="Profit2">Lay Profit</th>}
                 </tr>
               </thead>
               <tbody>
-                {oddsData.length === 0 && !error ? (
+                {filteredTips.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="text-center blackcolor">
-                      No latest odds available.
-                    </td>
+                    <td colSpan="7" className="text-center blackcolor">Wait for New Tip</td>
                   </tr>
-                ) : error ? (
+                ) : error === 'Access denied: Please redeem a valid coin to view match odds and investment.' ? (
                   renderError()
                 ) : (
-                  oddsData.map((item, idx) => (
-                    <tr key={idx}>
-                      <td>{item.runnerName}</td>
-                      <td>{item.odds?.back ?? 0}</td>
-                      <td>{item.Ammount?.back ?? 0}</td>
-                      <td>{item.Profit?.back ?? 0}</td>
-                      <td>{item.odds?.lay ?? 0}</td>
-                      <td>{item.Ammount?.lay ?? 0}</td>
-                      <td>{item.Profit?.lay ?? 0}</td>
+                  filteredTips.map((item, idx) => (
+                    <tr key={item.selectionId || item.runnerName || idx} className="live-tip-row">
+                      <td className="Runner">{item.runnerName}</td>
+                      {visibleColumns.backOdds && (
+                        <td className={item.odds?.back ? 'Odds1 highlight' : 'Odds1'}>
+                          {display(item.odds?.back ?? 0)}
+                        </td>
+                      )}
+                      {visibleColumns.backAmount && (
+                        <td className={item.Ammount?.back ? 'Amount1 highlight' : 'Amount1'}>
+                          {display(item.Ammount?.back ?? 0)}
+                        </td>
+                      )}
+                      {visibleColumns.backProfit && (
+                        <td className={item.Profit?.back ? 'Profit1 highlight' : 'Profit1'}>
+                          {display(item.Profit?.back ?? 0)}
+                        </td>
+                      )}
+                      {visibleColumns.layOdds && (
+                        <td className={item.odds?.lay ? 'Odds2 highlight' : 'Odds2'}>
+                          {display(item.odds?.lay ?? 0)}
+                        </td>
+                      )}
+                      {visibleColumns.layAmount && (
+                        <td className={item.Ammount?.lay ? 'Amount2 highlight' : 'Amount2'}>
+                          {display(item.Ammount?.lay ?? 0)}
+                        </td>
+                      )}
+                      {visibleColumns.layProfit && (
+                        <td className={item.Profit?.lay ? 'Profit2 highlight' : 'Profit2'}>
+                          {display(item.Profit?.lay ?? 0)}
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}

@@ -17,6 +17,49 @@ body{
     animation: App-logo-spin infinite 20s linear;
   }
 }
+.sport-btn-group {
+  gap: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.sport-btn {
+  background: #181f36;
+  color: #fff;
+  border: 2px solid #3952f5;
+  border-radius: 12px !important;
+  padding: 0.75rem 1.5rem;
+  margin: 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 4px 16px 0 rgba(57,82,245,0.07);
+}
+
+.sport-btn .sport-icon {
+  font-size: 2rem;
+  margin-right: 0.6rem;
+}
+
+.sport-btn .sport-label {
+  vertical-align: middle;
+}
+
+.sport-btn.selected,
+.sport-btn:hover {
+  background: linear-gradient(90deg,#3952f5 0,#09afff 100%);
+  color: #fff;
+  border-color: #09afff;
+  box-shadow: 0 6px 24px 0 rgba(57,82,245,0.12);
+  transform: translateY(-2px) scale(1.04);
+}
+
+@media (max-width: 500px) {
+  .sport-btn-group { flex-direction: column; }
+  .sport-btn { width: 100%; margin-bottom: 10px; }
+}
 
 .App-header {
   background-color: #282c34;
@@ -41,3 +84,4 @@ body{
     transform: rotate(360deg);
   }
 }
+

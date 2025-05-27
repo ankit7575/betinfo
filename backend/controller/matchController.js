@@ -74,6 +74,46 @@ const getSomething = catchAsyncErrors(async (req, res, next) => {
     io.emit("event_name", { message: "Socket is working!" });
     res.status(200).json({ success: true });
 });
+// Admin: Update only the 'selected' status
+const updateMatchSelectedStatus = async (req, res) => {
+    try {
+        const { eventId, selected } = req.body;
+        if (typeof selected !== "boolean") {
+            return res.status(400).json({ success: false, message: "'selected' must be boolean" });
+        }
+        const match = await Match.findOneAndUpdate(
+            { eventId },
+            { $set: { selected } },
+            { new: true }
+        );
+        if (!match) {
+            return res.status(404).json({ success: false, message: "Match not found" });
+        }
+        return res.json({ success: true, data: match });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+// Admin: Update only the 'adminStatus' field
+const updateMatchAdminStatus = async (req, res) => {
+    try {
+        const { eventId, adminStatus } = req.body;
+        if (typeof adminStatus !== "string") {
+            return res.status(400).json({ success: false, message: "'adminStatus' must be string" });
+        }
+        const match = await Match.findOneAndUpdate(
+            { eventId },
+            { $set: { adminStatus } },
+            { new: true }
+        );
+        if (!match) {
+            return res.status(404).json({ success: false, message: "Match not found" });
+        }
+        return res.json({ success: true, data: match });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 const getMatches = catchAsyncErrors(async (req, res, next) => {
     const { sportId } = req.params;
@@ -85,9 +125,12 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
         return res.status(500).json({ success: false, message: 'Unexpected API response.', data: matches });
     }
 
+    // Accept at least 2 runners for all sports
     const filteredMatches = matches.filter(match =>
-        Array.isArray(match.matchRunners) && match.matchRunners.length === 2 &&
-        Array.isArray(match.markets) && match.markets.length > 0
+        Array.isArray(match.matchRunners) &&
+        match.matchRunners.length >= 2 &&
+        Array.isArray(match.markets) &&
+        match.markets.length > 0
     );
 
     const allMatches = [];
@@ -110,6 +153,8 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
                     marketName: market.marketName,
                 })),
                 openDate: match.openDate,
+                selected: false,      // Admin can mark true later
+                adminStatus: "",      // Admin can set custom status later
             });
 
             await matchDoc.save();
@@ -118,6 +163,7 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
         allMatches.push(matchDoc);
     }
 
+    // Return all matches (with selected/adminStatus fields), for admin listing/updating
     return res.status(200).json({
         success: true,
         message: `${newMatchCount} new matches saved. ${allMatches.length} total matches returned.`,
@@ -125,6 +171,116 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
     });
 });
 
+const getTennisMatches = catchAsyncErrors(async (req, res, next) => {
+  // For tennis, sportId is 2.
+  const sportId = 2;
+
+  const apiUrl = `https://api.trovetown.co/v1/apiCalls?apiType=matchListManish&sportId=${sportId}`;
+  const { data: matches } = await axios.get(apiUrl);
+
+  if (!Array.isArray(matches)) {
+    return res.status(500).json({ success: false, message: 'Unexpected API response.', data: matches });
+  }
+
+  // Allow at least 2 runners for tennis (singles or doubles)
+  const filteredMatches = matches.filter(match =>
+    Array.isArray(match.matchRunners) &&
+    match.matchRunners.length >= 2 &&
+    Array.isArray(match.markets) &&
+    match.markets.length > 0
+  );
+
+  const allMatches = [];
+  let newMatchCount = 0;
+
+  for (const match of filteredMatches) {
+    let matchDoc = await Match.findOne({ eventId: match.eventId });
+    if (!matchDoc) {
+      matchDoc = new Match({
+        eventId: match.eventId,
+        eventName: match.eventName || null,
+        competitionName: match.competitionName,
+        sportName: match.sportName || "Tennis",
+        matchRunners: match.matchRunners.map(runner => ({
+          runnerId: runner.selectionId,
+          runnerName: runner.runnerName,
+        })),
+        markets: match.markets.map(market => ({
+          marketId: market.marketId,
+          marketName: market.marketName,
+        })),
+        openDate: match.openDate,
+        selected: false,      // Admin can mark true later
+        adminStatus: "",      // Admin can set custom status later
+      });
+      await matchDoc.save();
+      newMatchCount++;
+    }
+    allMatches.push(matchDoc);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: `${newMatchCount} new matches saved. ${allMatches.length} total matches returned.`,
+    data: allMatches,
+  });
+});
+
+
+const getSoccerMatches = catchAsyncErrors(async (req, res, next) => {
+  const sportId = 1; // Soccer/Football
+
+  const apiUrl = `https://api.trovetown.co/v1/apiCalls?apiType=matchListManish&sportId=${sportId}`;
+  const { data: matches } = await axios.get(apiUrl);
+
+  if (!Array.isArray(matches)) {
+    return res.status(500).json({ success: false, message: 'Unexpected API response.', data: matches });
+  }
+
+  // Filter: At least 2 runners in Match Odds market, and at least one market available
+  const filteredMatches = matches.filter(match =>
+    Array.isArray(match.matchRunners) &&
+    match.matchRunners.length >= 2 && // Soccer often has 3: Team1, Team2, Draw
+    Array.isArray(match.markets) &&
+    match.markets.length > 0
+  );
+
+  const allMatches = [];
+  let newMatchCount = 0;
+
+  for (const match of filteredMatches) {
+    let matchDoc = await Match.findOne({ eventId: match.eventId });
+    if (!matchDoc) {
+      matchDoc = new Match({
+        eventId: match.eventId,
+        eventName: match.eventName || null,
+        competitionName: match.competitionName,
+        sportId: match.sportId,
+        sportName: match.sportName || "Soccer",
+        matchRunners: match.matchRunners.map(runner => ({
+          runnerId: runner.selectionId,
+          runnerName: runner.runnerName,
+        })),
+        markets: match.markets.map(market => ({
+          marketId: market.marketId,
+          marketName: market.marketName,
+        })),
+        openDate: match.openDate,
+        selected: false,   // Admin can mark true later
+        adminStatus: "",   // Admin can set custom status later
+      });
+      await matchDoc.save();
+      newMatchCount++;
+    }
+    allMatches.push(matchDoc);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: `${newMatchCount} new soccer matches saved. ${allMatches.length} total matches returned.`,
+    data: allMatches,
+  });
+});
 
 
 // ✅ Get Match By ID from MongoDB and store in tempStore
@@ -174,6 +330,8 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
     }
 });
 
+
+// Get Betfair Odds for Runner using tempStore match
 const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
   const { eventId } = req.params;
   const io = req.app.get("io");
@@ -206,7 +364,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
     const marketId = matchOddsMarket.marketId;
     const apiUrl = `https://api.trovetown.co/v1/apiCalls/betfairData?marketIds=${marketId}`;
 
-    let data;
+     let data;
     try {
       const response = await axios.get(apiUrl, { timeout: 10000 });
       data = response.data;
@@ -242,7 +400,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       }]
     }));
 
-    match.betfairOdds = runnerData;
+     match.betfairOdds = runnerData;
     if (!isFromCache && typeof match.save === "function") {
       await match.save();
     }
@@ -279,7 +437,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-  const getScoreboardByEventId = catchAsyncErrors(async (req, res, next) => {
+const getScoreboardByEventId = catchAsyncErrors(async (req, res, next) => {
     const { eventId } = req.params;
     const io = req.app.get("io");
 
@@ -303,7 +461,6 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       if (!data?.data?.length || data.data.length < 3) return;
 
       const [d0 = {}, d1 = {}, d2 = {}] = data.data;
-
       const scoreboard = {
         team1: d2.t1 || d2.team1 || '',
         team2: d2.t2 || d2.team2 || '',
@@ -337,7 +494,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
     await fetchAndEmitScore(); // initial fetch
     res.status(200).json({ success: true, message: "Started real-time scoreboard for eventId: " + eventId });
   });
-
+ 
 
 // Helper: Remove backend-only fields like expiresAt
 function sanitizeOdds(oddsArr) {
@@ -873,9 +1030,11 @@ module.exports = {
   getMatchDetailsWithTip,
   manageUserInvestment,
   autoCalculateAdminBetfairOddsForRunner,
-
+getSoccerMatches,
   addAdminBetfairOdds,
   getUserMatchOddsAndInvestment,
-  userAddInvestment ,
-
+  userAddInvestment,
+getTennisMatches,
+updateMatchSelectedStatus,
+updateMatchAdminStatus,
 };

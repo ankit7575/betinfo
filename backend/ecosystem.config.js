@@ -1,18 +1,18 @@
 module.exports = {
   apps: [
     {
-      name: "betinfo-backend",             // Unique app name
-      script: "./server.js",               // Your entry point
-      instances: 1,                        // Keep only 1 instance (128MB RAM)
-      exec_mode: "fork",                   // Avoid cluster mode (uses more memory)
-      max_memory_restart: "100M",          // Restart if memory goes above 100MB
-      watch: false,                        // Disable file watching (RAM-saving)
+      name: "betinfo-backend",
+      script: "./server.js",
+      instances: 8,                   // 8 instances for 8 cores
+      exec_mode: "cluster",           // Use cluster mode for multi-core
+      max_memory_restart: "8G",       // Restart any process >2GB RAM (suitable for 16GB total)
+      watch: false,
       env: {
         NODE_ENV: "production",
         PORT: 4000
       },
       log_date_format: "YYYY-MM-DD HH:mm Z",
-      merge_logs: true,                    // Combine logs from all instances
+      merge_logs: true,
     },
   ],
 };

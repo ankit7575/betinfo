@@ -7,6 +7,16 @@ import {
   GET_MATCH_BY_ID_SUCCESS,
   GET_MATCH_BY_ID_FAIL,
 
+  // Tennis
+  GET_TENNIS_MATCHES_REQUEST,
+  GET_TENNIS_MATCHES_SUCCESS,
+  GET_TENNIS_MATCHES_FAIL,
+
+  // Soccer
+  GET_SOCCER_MATCHES_REQUEST,
+  GET_SOCCER_MATCHES_SUCCESS,
+  GET_SOCCER_MATCHES_FAIL,
+
   GET_BETFAIR_ODDS_FOR_RUNNER_REQUEST,
   GET_BETFAIR_ODDS_FOR_RUNNER_SUCCESS,
   GET_BETFAIR_ODDS_FOR_RUNNER_FAIL,
@@ -67,6 +77,15 @@ import {
   USER_ADD_INVESTMENT_SUCCESS,
   USER_ADD_INVESTMENT_FAIL,
 
+  // Admin select/unselect and admin status
+  UPDATE_MATCH_SELECTED_STATUS_REQUEST,
+  UPDATE_MATCH_SELECTED_STATUS_SUCCESS,
+  UPDATE_MATCH_SELECTED_STATUS_FAIL,
+
+  UPDATE_MATCH_ADMIN_STATUS_REQUEST,
+  UPDATE_MATCH_ADMIN_STATUS_SUCCESS,
+  UPDATE_MATCH_ADMIN_STATUS_FAIL,
+
   CLEAR_ERRORS,
 } from "../constants/matchConstants";
 
@@ -74,6 +93,8 @@ const initialState = {
   matches: [],
   match: null,
   odds: null,
+  tennisMatches: [],
+  soccerMatches: [],
   scoreboard: null,
   matchDetails: null,
   userInvestment: null,
@@ -104,6 +125,10 @@ export const matchReducer = (state = initialState, action) => {
     case GET_USER_MATCH_ODDS_INVESTMENT_REQUEST:
     case USER_UPDATE_ODDS_REQUEST:
     case USER_ADD_INVESTMENT_REQUEST:
+    case GET_TENNIS_MATCHES_REQUEST:
+    case GET_SOCCER_MATCHES_REQUEST:
+    case UPDATE_MATCH_SELECTED_STATUS_REQUEST:
+    case UPDATE_MATCH_ADMIN_STATUS_REQUEST:
       return { ...state, loading: true, error: null };
 
     case GET_MATCHES_SUCCESS:
@@ -149,6 +174,35 @@ export const matchReducer = (state = initialState, action) => {
     case USER_UPDATE_ODDS_SUCCESS:
       return { ...state, loading: false };
 
+    // Tennis Matches
+    case GET_TENNIS_MATCHES_SUCCESS:
+      return { ...state, loading: false, tennisMatches: action.payload };
+
+    case GET_TENNIS_MATCHES_FAIL:
+      return { ...state, loading: false, error: action.payload };
+
+    // Soccer Matches
+    case GET_SOCCER_MATCHES_SUCCESS:
+      return { ...state, loading: false, soccerMatches: action.payload };
+
+    case GET_SOCCER_MATCHES_FAIL:
+      return { ...state, loading: false, error: action.payload };
+
+    // Admin: select/unselect match
+    case UPDATE_MATCH_SELECTED_STATUS_SUCCESS:
+      // Optionally update state.matches if needed
+      return { ...state, loading: false };
+    case UPDATE_MATCH_SELECTED_STATUS_FAIL:
+      return { ...state, loading: false, error: action.payload };
+
+    // Admin: set admin status
+    case UPDATE_MATCH_ADMIN_STATUS_SUCCESS:
+      // Optionally update state.matches if needed
+      return { ...state, loading: false };
+    case UPDATE_MATCH_ADMIN_STATUS_FAIL:
+      return { ...state, loading: false, error: action.payload };
+
+    // Generic Fails
     case GET_MATCHES_FAIL:
     case GET_MATCH_BY_ID_FAIL:
     case GET_BETFAIR_ODDS_FOR_RUNNER_FAIL:

@@ -172,6 +172,9 @@
   transform: translateY(-1px);
   color: #111 !important;
 }
+.headingnew{
+  font-size: 20px;
+}
 
 /* Custom Amount Input */
 .form-control[type="number"] {

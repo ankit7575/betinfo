@@ -6,10 +6,8 @@ const Match = require("../models/matchModel");
 const Transaction = require("../models/userModel");
 const User = require("../models/userModel");
 const ErrorHandler = require("../utils/errorhandler");
-
-// Temporary storage for unverified users
-const tempUserStore = {}; // Store for temporarily holding selected plans for users
-const TEMP_USER_EXPIRATION = 90 * 1000; // Expiration time for temp storage (1.5 minutes)
+const Redis = require('ioredis');
+const redis = new Redis(process.env.REDIS_URL || "redis://127.0.0.1:6379");
 
 // Add a new plan
 exports.addPlan = catchAsyncErrors(async (req, res, next) => {
@@ -112,61 +110,58 @@ exports.deletePlan = catchAsyncErrors(async (req, res, next) => {
 
 
 
-// Check the expiration of the selected plan in temporary storage
+// Check the expiration of the selected plan in Redis temp storage
 exports.checkSelectedPlanExpiration = catchAsyncErrors(async (req, res, next) => {
-  const tempId = req.user.id;
+  const userId = req.user.id;
 
-  // Validate if a plan is stored for the user
-  if (!tempId || !tempUserStore[tempId]) {
+  if (!userId) {
+    return next(new ErrorHandler("User not authenticated", 401));
+  }
+
+  // Try to get the plan from Redis
+  const tempPlanStr = await redis.get(`tempuser:plan:${userId}`);
+  if (!tempPlanStr) {
     return next(new ErrorHandler("No plan selected or plan has expired", 404));
   }
 
-  const { expiration } = tempUserStore[tempId];
-
-  // Check if the plan is still valid or expired
-  if (Date.now() > expiration) {
-    delete tempUserStore[tempId]; // Remove expired plan from temp storage
-    return next(new ErrorHandler("Plan selection has expired", 400));
-  }
+  // Parse and return the planId (or the plan object you stored)
+  const { planId } = JSON.parse(tempPlanStr);
 
   res.status(200).json({
     success: true,
     message: "Plan is still valid for transaction",
-    selectedPlan: tempUserStore[tempId].selectedPlan,
+    selectedPlan: planId,
   });
 });
 
-// Clear expired plans from temporary storage
-exports.clearExpiredPlans = catchAsyncErrors(async (req, res, next) => {
-  const tempId = req.user.id;
 
-  // Check if user is authenticated
-  if (!tempId) {
+// Clear user's temp plan (mostly for manual clean-up or debugging)
+exports.clearExpiredPlans = catchAsyncErrors(async (req, res, next) => {
+  const userId = req.user.id;
+  if (!userId) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  // Check if the user has selected a plan
-  if (tempUserStore[tempId]) {
-    // If plan is expired, remove it from temporary storage
-    if (Date.now() > tempUserStore[tempId].expiration) {
-      delete tempUserStore[tempId]; // Remove expired plan from temp storage
-      return res.status(200).json({
-        success: true,
-        message: "Expired plan removed from temp store",
-      });
-    } else {
-      return res.status(200).json({
-        success: true,
-        message: "No expired plan to remove",
-      });
-    }
-  } else {
+  const redisKey = `tempuser:plan:${userId}`;
+  const tempPlanStr = await redis.get(redisKey);
+
+  if (!tempPlanStr) {
+    // Key doesn't exist, either already expired or never set
     return res.status(200).json({
       success: true,
       message: "No plan in temp store",
     });
   }
+
+  // If plan exists, delete it
+  await redis.del(redisKey);
+
+  return res.status(200).json({
+    success: true,
+    message: "Plan (if any) removed from temp store",
+  });
 });
+
 
 
 // Select an Activation Plan temporarily for the user
@@ -174,48 +169,37 @@ exports.selectPlan = async (req, res) => {
     try {
         const { planId } = req.body;
 
-        // Ensure the user is authenticated and has an ID
         if (!req.user || !req.user.id) {
             return res.status(401).json({ success: false, message: 'User not authenticated' });
         }
 
-        // Validate planId
         if (!mongoose.Types.ObjectId.isValid(planId)) {
             return res.status(400).json({ success: false, message: 'Invalid plan ID' });
         }
 
-        // Find the plan by its ID
-        const plan = await Plan.findById(planId); // Changed from ActivationPlan to Plan
+        const plan = await Plan.findById(planId);
         if (!plan) {
             return res.status(404).json({ success: false, message: 'Plan not found' });
         }
 
         const userId = req.user.id;
-
-        // Find the user data from the User model
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Store plan temporarily
-        tempUserStore[userId] = {
-            plan,
-            timestamp: Date.now(),
-        };
-
-        // Set timeout to clear the entry after expiration
-        setTimeout(() => {
-            if (tempUserStore[userId] && Date.now() - tempUserStore[userId].timestamp >= TEMP_USER_EXPIRATION) {
-                delete tempUserStore[userId];
-            }
-        }, TEMP_USER_EXPIRATION);
+        // Store temp plan in Redis, TTL is in seconds!
+        await redis.setex(
+            `tempuser:plan:${userId}`,
+            90, // 90 seconds
+            JSON.stringify({ planId })
+        );
 
         res.status(200).json({
             success: true,
             message: 'Plan selected and stored temporarily',
             plan,
-            user, // Returning the user data as part of the response
+            user,
         });
     } catch (error) {
         console.error('Error selecting plan:', error);
@@ -225,40 +209,41 @@ exports.selectPlan = async (req, res) => {
 
 // Add a new transaction (payment) for the selected plan
 exports.addTransaction = catchAsyncErrors(async (req, res, next) => {
-    const { transactionId } = req.body;  // Expecting the transaction ID to be sent by the user
-
-    const userId = req.user.id;  // Assuming the user is authenticated and req.user contains user data
-
-    // Check if the user exists (make sure to fetch user from DB using the userId)
-    const user = await User.findById(userId);  // Find the user by their ID
+    const { transactionId } = req.body;
+    const userId = req.user.id;
+    const user = await User.findById(userId);
     if (!user) {
-        return next(new ErrorHandler("User not found", 404));  // Handle the case where user doesn't exist
+        return next(new ErrorHandler("User not found", 404));
     }
 
-    // Check if the user has a selected plan in the temporary storage (tempUserStore)
-    if (!tempUserStore[userId]) {
+    // Read temp plan from Redis
+    const tempPlanStr = await redis.get(`tempuser:plan:${userId}`);
+    if (!tempPlanStr) {
         return next(new ErrorHandler("No plan selected or plan has expired", 404));
     }
+    const { planId } = JSON.parse(tempPlanStr);
 
-    const { plan } = tempUserStore[userId];
-
-    // Ensure the transactionId is provided
     if (!transactionId) {
         return next(new ErrorHandler("Transaction ID is required", 400));
     }
 
-    // Add the transaction to the user's record
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+        return next(new ErrorHandler("Plan not found", 404));
+    }
+
     await user.addTransaction(transactionId, plan);
 
-    // After transaction creation, remove the plan from temporary storage
-    delete tempUserStore[userId];
+    // Delete temp plan from Redis
+    await redis.del(`tempuser:plan:${userId}`);
 
     res.status(201).json({
         success: true,
         message: 'Transaction created successfully',
-        user,  // Returning the user data as part of the response
+        user,
     });
 });
+
 // Update transaction status (Admin can change status of any user's transaction)
 exports.updateTransactionStatus = catchAsyncErrors(async (req, res, next) => {
   const { transactionId, status } = req.body;

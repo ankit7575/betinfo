@@ -141,7 +141,7 @@ body {
 
 /* No Matches Found */
 .white::after {
-  content: " 🏏";
+
   animation: blink 1s infinite;
 }
 

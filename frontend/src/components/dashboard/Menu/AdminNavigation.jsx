@@ -86,14 +86,13 @@ function AdminNavigation() {
         { name: "View User Keys & Coins", link: "/dashboard/key/view-all-coin-user" },
       ],
     },
-    {
-      category: "Tips",
-      options: [
-        { name: "View Matches", link: "/dashboard/odds/view-matches" },
-       
-       
-      ],
-    },
+   {
+  category: "Tips",
+  options: [
+    { name: "View Matches", link: "/dashboard/odds/view-matches" }
+  ],
+},
+
   ];
 
   return (

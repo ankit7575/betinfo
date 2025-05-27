@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getMatches } from '../../actions/matchaction';
+import { getSoccerMatches } from '../../actions/matchaction';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './TipTable.css';
+import '../../components/Home/TipTable.css';
 
-const TipTable = ({ sportId = 4 }) => {
+const ViewSoccerMatch = () => {
   const dispatch = useDispatch();
-  const { loading, error, matches = [] } = useSelector((state) => state.match || {});
+  const { loading, error, soccerMatches = [] } = useSelector((state) => state.match || {});
 
   const now = new Date();
   const today = new Date(now);
@@ -14,23 +14,23 @@ const TipTable = ({ sportId = 4 }) => {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   useEffect(() => {
-    dispatch(getMatches(sportId));
-  }, [dispatch, sportId]);
+    dispatch(getSoccerMatches());
+  }, [dispatch]);
 
   const isSameDate = (d1, d2) =>
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
 
-  // Only show matches that are selected by admin (selected: true)
-  const filteredMatches = matches.filter((match) => match.selected);
+  // === Only show admin-approved matches ===
+  const filteredMatches = soccerMatches.filter(match => match.selected);
 
   const todayMatches = filteredMatches
     .filter((match) => {
       const matchTime = new Date(match.openDate);
       return (
         Array.isArray(match.matchRunners) &&
-        match.matchRunners.length === 2 &&
+        match.matchRunners.length >= 2 &&
         Array.isArray(match.markets) &&
         match.markets.length > 0 &&
         matchTime instanceof Date &&
@@ -45,7 +45,7 @@ const TipTable = ({ sportId = 4 }) => {
       const matchTime = new Date(match.openDate);
       return (
         Array.isArray(match.matchRunners) &&
-        match.matchRunners.length === 2 &&
+        match.matchRunners.length >= 2 &&
         Array.isArray(match.markets) &&
         match.markets.length > 0 &&
         matchTime instanceof Date &&
@@ -71,7 +71,7 @@ const TipTable = ({ sportId = 4 }) => {
     const matchOddsMarket = markets?.find((m) => m.marketName === 'Match Odds');
     const matchOddsMarketId = matchOddsMarket?.marketId || '';
     const url = `/viewtip?eventId=${eventId}&marketId=${matchOddsMarketId}`;
-    window.location.href = url; // open in same tab
+    window.location.href = url; // Open in same tab
   };
 
   const renderTable = (matchesToShow) => {
@@ -96,7 +96,8 @@ const TipTable = ({ sportId = 4 }) => {
           <tbody>
             {matchesToShow.map((match, index) => {
               const teamNames =
-                match.eventName || (Array.isArray(match.matchRunners)
+                match.eventName ||
+                (Array.isArray(match.matchRunners)
                   ? match.matchRunners.map((r) => r.runnerName).join(' vs ')
                   : 'N/A');
               const matchDate = new Date(match.openDate);
@@ -138,13 +139,13 @@ const TipTable = ({ sportId = 4 }) => {
     );
   };
 
-  if (loading) return <div>Loading matches...</div>;
+  if (loading) return <div>Loading soccer matches...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="container-fluid">
       <div className="p-5 mt-4 pt-1">
-        <h1 className="mb-4 white">Cricket Match Tips</h1>
+        <h1 className="mb-4 white">Soccer Match Tips</h1>
 
         <h3 className="white mb-3">Today’s Matches</h3>
         {renderTable(todayMatches)}
@@ -156,4 +157,4 @@ const TipTable = ({ sportId = 4 }) => {
   );
 };
 
-export default TipTable;
+export default ViewSoccerMatch;

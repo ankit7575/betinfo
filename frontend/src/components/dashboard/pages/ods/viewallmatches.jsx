@@ -1,177 +1,63 @@
-import React, { useEffect } from 'react';
-import Layout from "../../layouts/layout"; // Import your Layout component
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { getMatches } from '../../../../actions/matchaction';  // Correct action import
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './ViewAllMatches.css';
+import React, { useState } from "react";
+import { GiCricketBat, GiSoccerBall, GiTennisRacket } from "react-icons/gi";
+import AdminCricketTable from "./AdminCricketTable"; // Your cricket admin table (see below)
+import AdminSoccerTable from "./AdminSoccerTable";   // Your soccer admin table (see below)
+import AdminTennisTable from "./AdminTennisTable";   // Your tennis admin table (see below)
+import Layout from "../../layouts/layout";
+import "./ViewAllMatches.css";
 
-const Viewallmatches = ({ sportId = 4 }) => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  // ✅ Use the correct reducer key: state.match
-  const matchList = useSelector((state) => state.match);
-  const { loading, matches = [] } = matchList || {};
-
-  useEffect(() => {
-    dispatch(getMatches(sportId));  // Dispatching the new action `getMatches`
-  }, [dispatch, sportId]);
-
-  // Separate the matches based on coming or live status
-  const upcomingMatches = matches
-    .filter((match) => {
-      const matchTime = new Date(match.openDate);
-      const now = new Date();
-      return matchTime > now && Array.isArray(match.matchRunners) && match.matchRunners.length === 2;
-    })
-    .slice(0, 25); // Limit to the first 5 upcoming matches
-
-  const liveMatches = matches
-    .filter((match) => {
-      const matchTime = new Date(match.openDate);
-      const now = new Date();
-      return matchTime <= now && Array.isArray(match.matchRunners) && match.matchRunners.length === 2;
-    })
-    .slice(0, 20); // Limit to the first 5 live matches
-
-  const formatMatchTime = (openDate) => {
-    const matchTime = new Date(openDate);
-    return `Today ${matchTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  };
-
-  const getMatchStatus = (openDate) => {
-    const now = new Date();
-    const matchTime = new Date(openDate);
-    return matchTime > now ? 'Coming' : 'Live';
-  };
-
-  if (loading) return <div>Loading matches...</div>;
-
-
-  if (!upcomingMatches.length && !liveMatches.length) return <div>No valid 1-vs-1 matches found</div>;
+// Main Admin Page
+const ViewAllMatchesAdmin = () => {
+  const [activeMatchType, setActiveMatchType] = useState("cricket");
 
   return (
-    <>
-      <Layout userRole="admin">
-        <div className="container mt-4">
-          <h1 className="mb-4">Cricket: Upcoming and Live Matches</h1>
-          
-          {/* Live Matches Section */}
-          {liveMatches.length > 0 && (
-            <div>
-              <h2>Live Matches</h2>
-              <div className="table-responsive">
-                <table className="table table-bordered table-hover">
-                  <thead className="table-dark">
-                    <tr>
-                      <th>Teams</th>
-                      <th>Match Time</th>
-                      <th>Status</th>
-                      <th>Competition</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {liveMatches.map((match, index) => {
-                      const teamNames =
-                        match.eventName || match.matchRunners.map((r) => r.runnerName).join(' vs ');
-                      const status = getMatchStatus(match.openDate);
-
-                      return (
-                        <tr key={index}>
-                          <td>{teamNames}</td>
-                          <td>{formatMatchTime(match.openDate)}</td>
-                          <td>{status}</td>
-                          <td>{match.competitionName || 'N/A'}</td>
-                          <td>
-                          <button
-  className="btn btn-secondary"
-  onClick={() => {
-    // Navigate to the Add Data page with match info
-    if (match && match.eventId) {
-      match.matchRunners.forEach((runner) => {
-        navigate(`/dashboard/odds/add-data`, {
-          state: {
-            eventId: match.eventId,
-            selectionId: runner.selectionId,  // Pass the selectionId for each runner
-            marketIds: match.markets?.map((market) => market.marketId).join(',') || ''
-          },
-        });
-      });
-    }
-  }}
->
-  Odds
-</button>
-
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+    <Layout userRole="admin">
+      {/* Sports Toggle */}
+    <div className="bgblack">
+        <div className="container-fluid p-5 pb-0 mt-3 mb-4 text-center ">
+        <div className="live-tips-card2">
+          <div className="row">
+            <div className="col-lg-4 center">
+              <h1 className="white">Select Sports</h1>
+            </div>
+            <div className="col-lg-8">
+              <div className="btn-group sport-btn-group" role="group" aria-label="Match Type Selector">
+                <button
+                  className={`btn sport-btn ${activeMatchType === "cricket" ? "selected" : ""}`}
+                  onClick={() => setActiveMatchType("cricket")}
+                >
+                  <GiCricketBat className="sport-icon" />
+                  <span className="sport-label">Cricket</span>
+                </button>
+                <button
+                  className={`btn sport-btn ${activeMatchType === "soccer" ? "selected" : ""}`}
+                  onClick={() => setActiveMatchType("soccer")}
+                >
+                  <GiSoccerBall className="sport-icon" />
+                  <span className="sport-label">Soccer</span>
+                </button>
+                <button
+                  className={`btn sport-btn ${activeMatchType === "tennis" ? "selected" : ""}`}
+                  onClick={() => setActiveMatchType("tennis")}
+                >
+                  <GiTennisRacket className="sport-icon" />
+                  <span className="sport-label">Tennis</span>
+                </button>
               </div>
             </div>
-          )} 
-          
-          {/* Upcoming Matches Section */}
-          {upcomingMatches.length > 0 && (
-            <div>
-              <h2>Upcoming Matches</h2>
-              <div className="table-responsive">
-                <table className="table table-bordered table-hover">
-                  <thead className="table-dark">
-                    <tr>
-                      <th>Teams</th>
-                      <th>Match Time</th>
-                      <th>Status</th>
-                      <th>Competition</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {upcomingMatches.map((match, index) => {
-                      const teamNames =
-                        match.eventName || match.matchRunners.map((r) => r.runnerName).join(' vs ');
-                      const status = getMatchStatus(match.openDate);
-
-                      return (
-                        <tr key={index}>
-                          <td>{teamNames}</td>
-                          <td>{formatMatchTime(match.openDate)}</td>
-                          <td>{status}</td>
-                          <td>{match.competitionName || 'N/A'}</td>
-                          <td>
-                            <button
-                              className="btn btn-secondary"
-                              onClick={() => {
-                                // Navigate to the Add Data page with match info
-                                if (match && match.eventId) {
-                                  navigate(`/dashboard/odds/add-data`, {
-                                    state: {
-                                      eventId: match.eventId,
-                                      marketIds: match.markets?.map((market) => market.marketId).join(',') || ''
-                                    },
-                                  });
-                                }
-                              }}
-                            >
-                              Odds
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </Layout>
-    </>
+      </div>
+
+      {/* Match Table by Sport */}
+      <div className="container-fluid">
+        {activeMatchType === "cricket" && <AdminCricketTable sportId={4} />}
+        {activeMatchType === "soccer" && <AdminSoccerTable sportId={1} />}
+        {activeMatchType === "tennis" && <AdminTennisTable sportId={2} />}
+      </div>
+    </div>
+    </Layout>
   );
 };
 
-export default Viewallmatches;
+export default ViewAllMatchesAdmin;

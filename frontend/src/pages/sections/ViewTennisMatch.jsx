@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getMatches } from '../../actions/matchaction';
+import { getTennisMatches } from '../../actions/matchaction';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './TipTable.css';
+import '../../components/Home/TipTable.css';
 
-const TipTable = ({ sportId = 4 }) => {
+const ViewTennisMatch = () => {
   const dispatch = useDispatch();
-  const { loading, error, matches = [] } = useSelector((state) => state.match || {});
+  const { loading, error, tennisMatches = [] } = useSelector((state) => state.match || {});
 
   const now = new Date();
   const today = new Date(now);
@@ -14,16 +14,16 @@ const TipTable = ({ sportId = 4 }) => {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   useEffect(() => {
-    dispatch(getMatches(sportId));
-  }, [dispatch, sportId]);
+    dispatch(getTennisMatches());
+  }, [dispatch]);
 
   const isSameDate = (d1, d2) =>
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
 
-  // Only show matches that are selected by admin (selected: true)
-  const filteredMatches = matches.filter((match) => match.selected);
+  // Only show matches where selected: true
+  const filteredMatches = tennisMatches.filter(match => match.selected);
 
   const todayMatches = filteredMatches
     .filter((match) => {
@@ -71,7 +71,7 @@ const TipTable = ({ sportId = 4 }) => {
     const matchOddsMarket = markets?.find((m) => m.marketName === 'Match Odds');
     const matchOddsMarketId = matchOddsMarket?.marketId || '';
     const url = `/viewtip?eventId=${eventId}&marketId=${matchOddsMarketId}`;
-    window.location.href = url; // open in same tab
+    window.location.href = url; // Use window.open(url, '_blank') for new tab if needed
   };
 
   const renderTable = (matchesToShow) => {
@@ -84,7 +84,7 @@ const TipTable = ({ sportId = 4 }) => {
         <table className="table table-bordered table-hover glow-border">
           <thead className="table-dark">
             <tr>
-              <th>Teams</th>
+              <th>Players</th>
               <th>Date</th>
               <th>Match Time</th>
               <th>Status</th>
@@ -95,8 +95,9 @@ const TipTable = ({ sportId = 4 }) => {
           </thead>
           <tbody>
             {matchesToShow.map((match, index) => {
-              const teamNames =
-                match.eventName || (Array.isArray(match.matchRunners)
+              const playerNames =
+                match.eventName ||
+                (Array.isArray(match.matchRunners)
                   ? match.matchRunners.map((r) => r.runnerName).join(' vs ')
                   : 'N/A');
               const matchDate = new Date(match.openDate);
@@ -105,13 +106,11 @@ const TipTable = ({ sportId = 4 }) => {
 
               return (
                 <tr key={eventId || index}>
-                  <td>{teamNames}</td>
+                  <td>{playerNames}</td>
                   <td>{formatMatchDate(match.openDate)}</td>
                   <td>{formatMatchTime(match.openDate)}</td>
                   <td>
-                    <span
-                      className={`badge ${status === 'Live' ? 'bg-success' : 'bg-warning text-dark'}`}
-                    >
+                    <span className={`badge ${status === 'Live' ? 'bg-success' : 'bg-warning text-dark'}`}>
                       {status}
                     </span>
                   </td>
@@ -138,13 +137,13 @@ const TipTable = ({ sportId = 4 }) => {
     );
   };
 
-  if (loading) return <div>Loading matches...</div>;
+  if (loading) return <div>Loading tennis matches...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="container-fluid">
       <div className="p-5 mt-4 pt-1">
-        <h1 className="mb-4 white">Cricket Match Tips</h1>
+        <h1 className="mb-4 white">Tennis Match Tips</h1>
 
         <h3 className="white mb-3">Today’s Matches</h3>
         {renderTable(todayMatches)}
@@ -156,4 +155,4 @@ const TipTable = ({ sportId = 4 }) => {
   );
 };
 
-export default TipTable;
+export default ViewTennisMatch;

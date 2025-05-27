@@ -85,13 +85,14 @@
 }
 
 .cell-back {
-  background-color: #0f2f40;
-  color: #0ff;
+  color: black;
+  background-color: #73bbee !important; /* Green for Back Odds */
+
 }
 
 .cell-lay {
-  background-color: #401f1f;
-  color: #f88;
+  background-color: #faa9bc !important; /* Red for Lay Odds */
+  color: black;
 }
 
 .cell-odds:hover {
@@ -102,12 +103,12 @@
 .pending-odds {
   font-weight: bold;
   font-size: 1.2rem;
-  color: #fff;
+  color: black;
 }
 
 .pending-stake {
   font-size: 0.8rem;
-  color: #ccc;
+  color: black;
   margin-top: 2px;
   display: block;
 }

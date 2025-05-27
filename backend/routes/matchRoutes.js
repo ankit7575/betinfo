@@ -9,14 +9,16 @@ const {
   getMatchDetailsWithTip,
   manageUserInvestment,
   autoCalculateAdminBetfairOddsForRunner,
-
+getSoccerMatches,
   viewAdminLayingDataForRunnerLatest,
   viewAdminLayingDataForRunnerHistory,
 updateUserOddsWithHistory,
   addAdminBetfairOdds,
   getUserMatchOddsAndInvestment,
   userAddInvestment,
-
+getTennisMatches,
+updateMatchSelectedStatus,
+updateMatchAdminStatus,
 } = require('../controller/matchController');
 
 
@@ -25,7 +27,14 @@ const { isAuthenticatedUser,authorizeRoles } = require('../middleware/auth');
 // ✅ Get all matches for a sport
 // Endpoint: GET /api/v1/match/sport/:sportId
 router.get('/matches/:sportId',  getMatches);
+router.get('/tennis', getTennisMatches);
+router.get('/soccer', getSoccerMatches);
 
+// For selected
+router.post('/update-selected', updateMatchSelectedStatus);
+
+// For admin status
+router.post('/update-admin-status', updateMatchAdminStatus);
 // ✅ Get single match by eventId
 // Endpoint: GET /api/v1/match/:eventId
 router.get('/match/:eventId', isAuthenticatedUser, getMatchById);

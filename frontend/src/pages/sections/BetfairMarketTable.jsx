@@ -73,51 +73,28 @@ const BetfairMarketTable = ({ matchData, socket }) => {
     return match?.runnerName || fallback || `Runner ${index + 1}`;
   };
 
-  const renderRow = (runner, index) => {
-    const runnerName = getRunnerName(runner.selectionId, runner.runnerName, index);
-    const backData = (runner.availableToBack || []).slice(0, 3).reverse(); // REVERSED BACK
-    const layData = (runner.availableToLay || []).slice(0, 3); // NORMAL
+ const renderRow = (runner, index) => {
+  const runnerName = getRunnerName(runner.selectionId, runner.runnerName, index);
+  const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0 };
+  const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0 };
+  const isBackHighlight = highlightMap[`${runner.selectionId}-back`];
+  const isLayHighlight = highlightMap[`${runner.selectionId}-lay`];
 
-    return (
-      <tr key={runner.selectionId || runnerName}>
-        <td className="runner-name-cell">{runnerName}</td>
+  return (
+    <tr key={runner.selectionId || runnerName}>
+      <td className="runner-name-cell">{runnerName}</td>
+      <td className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
+        <div className="pending-odds">{backItem.price}</div>
+        <div className="pending-stake">{backItem.size}</div>
+      </td>
+      <td className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
+        <div className="pending-odds">{layItem.price}</div>
+        <div className="pending-stake">{layItem.size}</div>
+      </td>
+    </tr>
+  );
+};
 
-        {/* Back (Reversed) */}
-        {backData.map((item, i) => {
-          const isHighlight = highlightMap[`${runner.selectionId}-back`] && i === 2;
-          return (
-            <td key={`b-${i}`} className={`cell-odds cell-back ${isHighlight ? 'highlight' : ''}`}>
-              <div className="pending-odds">{item.price || 0}</div>
-              <div className="pending-stake">{item.size || 0}</div>
-            </td>
-          );
-        })}
-        {[...Array(3 - backData.length)].map((_, i) => (
-          <td key={`b-empty-${i}`} className="cell-odds cell-back">
-            <div className="pending-odds">0</div>
-            <div className="pending-stake">0</div>
-          </td>
-        ))}
-
-        {/* Lay (Unchanged) */}
-        {layData.map((item, i) => {
-          const isHighlight = highlightMap[`${runner.selectionId}-lay`] && i === 0;
-          return (
-            <td key={`l-${i}`} className={`cell-odds cell-lay ${isHighlight ? 'highlight' : ''}`}>
-              <div className="pending-odds">{item.price || 0}</div>
-              <div className="pending-stake">{item.size || 0}</div>
-            </td>
-          );
-        })}
-        {[...Array(3 - layData.length)].map((_, i) => (
-          <td key={`l-empty-${i}`} className="cell-odds cell-lay">
-            <div className="pending-odds">0</div>
-            <div className="pending-stake">0</div>
-          </td>
-        ))}
-      </tr>
-    );
-  };
 
   return (
     <div className="container pb-5">
@@ -134,8 +111,8 @@ const BetfairMarketTable = ({ matchData, socket }) => {
         <thead>
           <tr>
             <th>Team</th>
-            <th colSpan="3">Back</th>
-            <th colSpan="3">Lay</th>
+            <th colSpan="1">Back</th>
+            <th colSpan="1">Lay</th>
           </tr>
         </thead>
         <tbody>
