@@ -45,7 +45,7 @@ const SoccerTip = () => {
   // Get eventId from URL
   const query = new URLSearchParams(location.search);
   const eventId = query.get('eventId');
-
+const sportId = 1; // <<<--- Set this manually as required
   // Redux State Selectors
   const {
     loading,
@@ -282,12 +282,13 @@ const SoccerTip = () => {
               socket={socket}
             />
             <IframeBox
-              eventId={eventId}
-              iframeLoaded={iframeLoaded}
-              setIframeLoaded={setIframeLoaded}
-              iframeError={iframeError}
-              setIframeError={setIframeError}
-            />
+                         eventId={eventId}
+                         sportId={sportId}    // <<<---- pass the manual sportId here!
+                         iframeLoaded={iframeLoaded}
+                         setIframeLoaded={setIframeLoaded}
+                         iframeError={iframeError}
+                         setIframeError={setIframeError}
+                       />
           </div>
         </div>
       </div>

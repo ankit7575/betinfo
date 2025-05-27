@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 
 const IframeBox = ({
   eventId,
+  sportId,           // 👈 Accept sportId as a prop
   iframeLoaded,
   setIframeLoaded,
   iframeError,
   setIframeError
 }) => {
-  const [showIframe, setShowIframe] = useState(false); // Start as OFF
+  const [showIframe, setShowIframe] = useState(false);
   const [iframeKey, setIframeKey] = useState(Date.now());
-  const [showController, setShowController] = useState(true); // Default ON
-  const [fullWidth, setFullWidth] = useState(false); // Default OFF
+  const [showController, setShowController] = useState(true);
+  const [fullWidth, setFullWidth] = useState(false);
 
-  // Toggle ON/OFF and refresh (reload) iframe when turning ON
   const handleToggle = () => {
     if (!showIframe) {
       setIframeKey(Date.now());
@@ -22,12 +22,8 @@ const IframeBox = ({
     setShowIframe((prev) => !prev);
   };
 
-  // Build iframe src with controller option if needed
-  // If your embed provider supports ?controls=1 or similar, add here:
-  // Example for YouTube: https://www.youtube.com/embed/VIDEO_ID?controls=1
-  const iframeSrc = `https://dpmatka.in/dtv.php?id=${eventId}${
-    showController ? '' : '&controls=0'
-  }`;
+  // Build the iframe src using both eventId and sportId
+  const iframeSrc = `https://dpmatka.in/dtv.php?id=${eventId}${sportId ? `&sportid=${sportId}` : ''}${showController ? '' : '&controls=0'}`;
 
   return (
     <div className={`card shadow-sm mb-4 ${fullWidth ? 'w-100' : ''}`}>

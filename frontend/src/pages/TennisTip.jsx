@@ -56,7 +56,7 @@ const TennisTip = () => {
   } = useSelector((state) => state.match || {});
   const { user, loading: userLoadingState } = useSelector((state) => state.user || {});
   const userId = user?._id;
-
+const sportId = 2; // <<<--- Set this manually as required
   // Fetch initial data on mount
   const fetchInitialData = useCallback(() => {
     if (eventId) {
@@ -285,8 +285,9 @@ const TennisTip = () => {
             <TennisScoreboardCard scoreboard={tennisScoreboardObj} socket={socket} />
 
             {/* iFrame for stream */}
-            <IframeBox
+             <IframeBox
               eventId={eventId}
+              sportId={sportId}    // <<<---- pass the manual sportId here!
               iframeLoaded={iframeLoaded}
               setIframeLoaded={setIframeLoaded}
               iframeError={iframeError}

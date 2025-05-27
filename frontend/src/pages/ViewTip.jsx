@@ -27,7 +27,7 @@ import {
 } from '../actions/matchaction';
 
 import { loadUser } from '../actions/userAction';
-
+const sportId = 4; // <<<--- Set this manually as required
 const ViewTip = () => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -298,6 +298,7 @@ const ViewTip = () => {
             
             <IframeBox
               eventId={eventId}
+              sportId={sportId}    // <<<---- pass the manual sportId here!
               iframeLoaded={iframeLoaded}
               setIframeLoaded={setIframeLoaded}
               iframeError={iframeError}
