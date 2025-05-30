@@ -1,21 +1,22 @@
+// models/userModel.js
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const Plan = require("./planModel");
-const Match = require("./matchModel");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const Plan = require("./planModel");
 
-// Coin Schema
+// --- Coin Schema (One coin = one match event only) ---
 const coinSchema = new Schema({
-  id: { type: String, required: true },
+  id: { type: String, required: true }, // Unique coin ID
   shareableCode: { type: String, required: true },
   activeAt: { type: Date },
-  expiresAt: { type: Date }, // Will be set when used
-  usedAt: { type: String, default: null }, // Used by email
+  expiresAt: { type: Date }, // Set when redeemed
+  usedAt: { type: Date, default: null }, // When redeemed
+  usedForEventId: { type: String, default: null }, // Which match/event
 });
 
-// Key Schema
+// --- Key Schema ---
 const keySchema = new Schema({
   id: { type: String, required: true },
   shareableCode: { type: String, required: true },
@@ -25,7 +26,6 @@ const keySchema = new Schema({
   coin: [coinSchema],
 });
 
-// Format createdAt
 keySchema.virtual('formattedCreatedAt').get(function () {
   return this.createdAt.toLocaleString('en-GB', {
     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -34,16 +34,16 @@ keySchema.virtual('formattedCreatedAt').get(function () {
   });
 });
 
-// Transaction Schema
+// --- Transaction Schema ---
 const transactionSchema = new Schema({
   transactionId: { type: String, required: true },
-  userId: { type: String, required: true },
+  userId: { type: String, required: true }, // User email
   plan: { type: Schema.Types.ObjectId, ref: 'Plan', required: true },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
   transactionDate: { type: Date, default: Date.now },
 });
 
-// User Schema
+// --- User Schema ---
 const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -51,7 +51,8 @@ const userSchema = new Schema({
     type: String,
     required: true,
     trim: true,
-    match: [/^\d{10,15}$/, "Please enter a valid phone number"],
+    // ALLOW: must start with +, then 7-18 digits
+    match: [/^\+\d{7,18}$/, "Please enter a valid phone number with country code (e.g., +911234567890)"],
   },
   isActive: { type: Boolean, default: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
@@ -63,24 +64,28 @@ const userSchema = new Schema({
   resetPasswordExpire: Date,
 }, { timestamps: true });
 
-// Middleware: hash password
+// --- Middleware: Hash password before save if modified ---
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-// Methods
+// --- User Methods ---
+
+// Compare password
 userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
+// Get JWT Token
 userSchema.methods.getJWTToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
+// Get Password Reset Token
 userSchema.methods.getResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
   this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
@@ -88,6 +93,7 @@ userSchema.methods.getResetPasswordToken = function () {
   return resetToken;
 };
 
+// Add a transaction
 userSchema.methods.addTransaction = function (transactionId, plan) {
   this.transactions.push({
     transactionId,
@@ -99,6 +105,7 @@ userSchema.methods.addTransaction = function (transactionId, plan) {
   return this.save();
 };
 
+// Approve a transaction and assign coins
 userSchema.methods.approveTransaction = async function (transactionId, coinsToAdd, planId) {
   const txn = this.transactions.find(t => t.transactionId === transactionId);
   if (!txn) throw new Error('Transaction not found');
@@ -107,12 +114,14 @@ userSchema.methods.approveTransaction = async function (transactionId, coinsToAd
 
   txn.status = 'completed';
 
+  // Generate coins for the plan
   const coins = Array.from({ length: coinsToAdd }, (_, i) => ({
     id: `coin-${Date.now()}-${i}`,
     shareableCode: `COIN-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
     activeAt: null,
     expiresAt: null,
     usedAt: null,
+    usedForEventId: null,
   }));
 
   const key = {
@@ -131,6 +140,7 @@ userSchema.methods.approveTransaction = async function (transactionId, coinsToAd
   return this;
 };
 
+// Reject a transaction
 userSchema.methods.rejectTransaction = function (transactionId) {
   const txn = this.transactions.find(t => t.transactionId === transactionId);
   if (!txn) throw new Error('Transaction not found');
@@ -138,71 +148,57 @@ userSchema.methods.rejectTransaction = function (transactionId) {
   return this.save();
 };
 
-userSchema.methods.useCoin = function (shareableCode, usedByEmail) {
+// --- Redeem Coin: One coin = One match event only ---
+userSchema.methods.redeemCoinForEvent = function (coinId, eventId) {
   for (const key of this.keys) {
     for (const coin of key.coin) {
-      if (coin.shareableCode === shareableCode && !coin.usedAt) {
+      if (
+        coin.id === coinId &&
+        !coin.usedAt &&
+        !coin.usedForEventId
+      ) {
         const now = new Date();
-        coin.usedAt = usedByEmail;
+        coin.usedAt = now;
+        coin.usedForEventId = eventId;
         coin.activeAt = now;
-        coin.expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // expires in 24h
-        this.coinAvailable -= 1;
-        return this.save();
-      }
-    }
-  }
-  throw new Error('Coin not found or already used.');
-};
+        coin.expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
 
-userSchema.methods.isCoinExpired = function (shareableCode) {
-  for (const key of this.keys) {
-    for (const coin of key.coin) {
-      if (coin.shareableCode === shareableCode) {
-        if (!coin.usedAt || !coin.expiresAt) return false;
-        return new Date() > new Date(coin.expiresAt);
-      }
-    }
-  }
-  throw new Error('Coin not found.');
-};
-
-userSchema.methods.redeemCoin = async function (shareableCode, matchId) {
-  for (const key of this.keys) {
-    for (const coin of key.coin) {
-      if (coin.shareableCode === shareableCode && !coin.usedAt) {
-        const now = new Date();
-        coin.usedAt = this.email;
-        coin.activeAt = now;
-        coin.expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-        const match = await Match.findById(matchId);
-        if (!match) throw new Error('Match not found');
-        match.usedWithCoin = true;
-        await match.save();
-
-        this.coinAvailable -= 1;
-        await this.save();
-
-        return {
+        this.coinAvailable = Math.max(0, (this.coinAvailable || 0) - 1);
+        return this.save().then(() => ({
           success: true,
-          message: "Coin successfully redeemed for the match.",
-          redeemedCoin: coin,
-          match: {
-            matchId: match._id,
-            matchName: match.name,
-          },
-        };
+          message: "Coin successfully redeemed for this match event.",
+          redeemedCoin: coin
+        }));
       }
     }
   }
-  throw new Error('Coin not found or already used.');
+  throw new Error('Coin not found or already used/redeemed.');
 };
 
+// Check if user has a valid coin for an event
+userSchema.methods.hasValidCoinForEvent = function (eventId) {
+  const now = new Date();
+  for (const key of this.keys) {
+    for (const coin of key.coin) {
+      if (
+        coin.usedForEventId === eventId &&
+        coin.usedAt &&
+        coin.expiresAt &&
+        new Date(coin.expiresAt) > now
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+// Count all coins available for use (unused for any event)
 userSchema.methods.countActiveCoins = function () {
   let count = 0;
   for (const key of this.keys) {
     for (const coin of key.coin) {
-      if (!coin.usedAt) count++;
+      if (!coin.usedAt && !coin.usedForEventId) count++;
     }
   }
   return count;

@@ -137,3 +137,38 @@
     outline: none;
   }
   
+  .agreementSection {
+  margin: 0 0 10px 0;
+}
+
+.checkboxLabel {
+  font-size: 0.97rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.link {
+  color: #0a70b8;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.termsText {
+  margin-left: 1.7rem;
+  font-size: 0.90rem;
+  color: #666;
+  text-align: start;
+}
+.black{
+  color: black;
+}
+.checkboxError {
+  color: #c0392b;
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  margin-left: 30px; /* indent to match checkbox */
+}

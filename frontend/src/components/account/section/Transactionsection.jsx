@@ -19,6 +19,7 @@ const Transactionsection = () => {
 
   const getQrCodeUrl = (price) => {
     switch (price) {
+       case 10: return 'assets/10.jpg';
       case 100: return 'assets/100.jpg';
       case 900: return 'assets/900.jpg';
       case 2500: return 'assets/2500.jpg';
@@ -64,10 +65,10 @@ const Transactionsection = () => {
     <div className={styles.container}>
       <div className={styles.loginBox}>
         <h2 className={styles.title}>Complete Your Payment</h2>
-        <p><strong>Plan:</strong> {plan.name}</p>
-        <p><strong>Price:</strong> {plan.price} USDT</p>
-        <p><strong>Access:</strong> {plan.access}</p>
-        <p><strong>Validity:</strong> {plan.validity}</p>
+        <p className='black'><strong>Plan:</strong> {plan.name}</p>
+        <p className='black'><strong>Price:</strong> {plan.price} USDT</p>
+        <p className='black'><strong>Access:</strong> {plan.description}</p>
+        <p className='black'><strong>TotalCoins:</strong> {plan.totalCoins}</p>
 
         <div className={styles.qrContainer}>
           <img src={getQrCodeUrl(plan.price)} alt="QR Code" className={styles.qrImage} />

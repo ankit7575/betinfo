@@ -1,0 +1,33 @@
+.legalContainer {
+  background: #fff;
+  max-width: 700px;
+  margin: 40px auto 30px auto;
+  padding: 32px 26px 24px 26px;
+  border-radius: 14px;
+  box-shadow: 0 2px 20px 0 #0001;
+  color: #232323;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.legalContainer h1 {
+  font-size: 2.1rem;
+  margin-bottom: 20px;
+  color: #1676c5;
+}
+
+.legalList {
+  margin-left: 1.3rem;
+  margin-bottom: 1.4rem;
+  font-size: 1.04rem;
+}
+
+.legalList li {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.legalFooter {
+  margin-top: 30px;
+  color: #666;
+  font-size: 0.97rem;
+}

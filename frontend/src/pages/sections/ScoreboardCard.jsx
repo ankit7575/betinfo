@@ -39,11 +39,38 @@ const ScoreboardCard = ({ scoreboard: initialScoreboard, socket }) => {
     setLiveScoreboard(initialScoreboard || {});
   }, [initialScoreboard]);
 
-  // Last 6 balls, left = oldest
-  const recentBalls =
-    Array.isArray(liveScoreboard.recentBalls) && liveScoreboard.recentBalls.length > 0
-      ? [...liveScoreboard.recentBalls].slice(-6)
-      : [];
+  // --- Always flatten as chars ---
+  // --- Always render each ball as its own <span> ---
+  let recentBalls = [];
+  const balls = liveScoreboard.recentBalls;
+
+  if (Array.isArray(balls)) {
+    if (balls.length === 1 && typeof balls[0] === "string" && balls[0].includes(',')) {
+      // ["4,0,2"]
+      recentBalls = balls[0].split(',').slice(-6);
+    } else if (balls.every(b => typeof b === "string" && b.length === 1)) {
+      // ["4", "0", "2"]
+      recentBalls = balls.slice(-6);
+    } else if (balls.length === 1 && typeof balls[0] === "string" && balls[0].length > 1) {
+      // ["004010"]
+      recentBalls = balls[0].split('').slice(-6);
+    } else {
+      // Fallback: flatten and filter out commas
+      recentBalls = balls.flatMap(str => String(str).split('')).filter(ch => ch !== ',').slice(-6);
+    }
+  } else if (typeof balls === "string") {
+    if (balls.includes(',')) {
+      // "4,0,2"
+      recentBalls = balls.split(',').slice(-6);
+    } else {
+      // "402"
+      recentBalls = balls.split('').slice(-6);
+    }
+  }
+
+
+  // ---- Debug!
+  console.log("Debug recentBalls", recentBalls, "raw", liveScoreboard.recentBalls);
 
   const overs1 = (Number(liveScoreboard.ballsDone1 || 0) / 6).toFixed(1);
 

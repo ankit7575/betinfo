@@ -514,75 +514,137 @@ exports.getAllUsersKeysAndCoins = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-exports.redeemCoinForAllMatches = catchAsyncErrors(async (req, res, next) => {
-  const { coinId } = req.body;
+// exports.redeemCoinForAllMatches = catchAsyncErrors(async (req, res, next) => {
+//   const { coinId } = req.body;
 
-  if (!coinId) {
-    return next(new ErrorHandler("Coin ID is required", 400));
+//   if (!coinId) {
+//     return next(new ErrorHandler("Coin ID is required", 400));
+//   }
+
+//   const user = await User.findOne({ email: req.user.email });
+
+//   if (!user) {
+//     return next(new ErrorHandler("User not found", 404));
+//   }
+
+//   const now = new Date();
+
+//   // Prevent double redemption within 24 hours
+//   const hasRecentRedemption = user.keys.some(key =>
+//     key.coin?.some(coin =>
+//       coin.usedAt && new Date(coin.usedAt) > new Date(now.getTime() - 24 * 60 * 60 * 1000)
+//     )
+//   );
+
+//   if (hasRecentRedemption) {
+//     return next(new ErrorHandler("You can only redeem one coin every 24 hours.", 400));
+//   }
+
+//   let coin = null;
+
+//   user.keys.forEach(key => {
+//     key.coin?.forEach(c => {
+//       if (c.id === coinId) {
+//         coin = c;
+//       }
+//     });
+//   });
+
+  
+//   if (!coin) {
+//     return next(new ErrorHandler("Coin not found", 404));
+//   }
+
+//   if (coin.usedAt) {
+//     return next(new ErrorHandler("Coin has already been used", 400));
+//   }
+
+//   const expiresAt = coin.expiresAt?.$date || coin.expiresAt;
+//   if (expiresAt && new Date(expiresAt) < now) {
+//     return next(new ErrorHandler("Coin has expired", 400));
+//   }
+
+//   // Redeem coin
+//   const currentTime = new Date();
+//   coin.usedAt = currentTime;
+//   coin.expiresAt = new Date(currentTime.getTime() + 24 * 60 * 60 * 1000);
+//   user.accessGrantedUntil = coin.expiresAt;
+
+//   await user.save();
+
+//   res.status(200).json({
+//     success: true,
+//     message: "Coin successfully redeemed for access to all matches for 24 hours.",
+//     redeemedCoin: {
+//       id: coin.id,
+//       shareableCode: coin.shareableCode,
+//       activeAt: coin.activeAt?.$date || coin.activeAt || null,
+//       expiresAt: coin.expiresAt,
+//       usedAt: coin.usedAt,
+//     },
+//     accessGrantedUntil: user.accessGrantedUntil,
+//   });
+// });
+// Redeem a coin for a specific match event (ONE coin = ONE match event, 24h)
+// POST /api/v1/redeem/event
+exports.redeemCoinForEvent = catchAsyncErrors(async (req, res, next) => {
+  const { coinId, eventId } = req.body;
+
+  if (!coinId || !eventId) {
+    return next(new ErrorHandler("Both Coin ID and Event ID are required", 400));
   }
 
   const user = await User.findOne({ email: req.user.email });
-
-  if (!user) {
-    return next(new ErrorHandler("User not found", 404));
-  }
+  if (!user) return next(new ErrorHandler("User not found", 404));
 
   const now = new Date();
 
-  // Prevent double redemption within 24 hours
-  const hasRecentRedemption = user.keys.some(key =>
+  // Prevent redeeming more than once for the same event
+  const alreadyRedeemed = user.keys.some(key =>
     key.coin?.some(coin =>
-      coin.usedAt && new Date(coin.usedAt) > new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      coin.usedForEventId === eventId &&
+      (!coin.expiresAt || new Date(coin.expiresAt) > now)
     )
   );
-
-  if (hasRecentRedemption) {
-    return next(new ErrorHandler("You can only redeem one coin every 24 hours.", 400));
+  if (alreadyRedeemed) {
+    return next(new ErrorHandler("Already redeemed a coin for this match. Please use another match.", 400));
   }
 
+  // Find a valid, unused coin
   let coin = null;
-
   user.keys.forEach(key => {
     key.coin?.forEach(c => {
-      if (c.id === coinId) {
-        coin = c;
-      }
+      if (c.id === coinId && !c.usedAt && !c.usedForEventId) coin = c;
     });
   });
 
-  
-  if (!coin) {
-    return next(new ErrorHandler("Coin not found", 404));
-  }
-
-  if (coin.usedAt) {
-    return next(new ErrorHandler("Coin has already been used", 400));
-  }
-
+  if (!coin) return next(new ErrorHandler("Coin not found or already used", 404));
   const expiresAt = coin.expiresAt?.$date || coin.expiresAt;
   if (expiresAt && new Date(expiresAt) < now) {
     return next(new ErrorHandler("Coin has expired", 400));
   }
 
-  // Redeem coin
-  const currentTime = new Date();
-  coin.usedAt = currentTime;
-  coin.expiresAt = new Date(currentTime.getTime() + 24 * 60 * 60 * 1000);
-  user.accessGrantedUntil = coin.expiresAt;
+  // Redeem coin for this match event (one coin = one match)
+  coin.usedAt = now;
+  coin.usedForEventId = eventId;
+  coin.activeAt = now;
+  coin.expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24h expiry
+
+  user.coinAvailable = Math.max(0, (user.coinAvailable || 0) - 1);
 
   await user.save();
 
   res.status(200).json({
     success: true,
-    message: "Coin successfully redeemed for access to all matches for 24 hours.",
+    message: "Coin successfully redeemed for this match event for 24 hours.",
     redeemedCoin: {
       id: coin.id,
       shareableCode: coin.shareableCode,
-      activeAt: coin.activeAt?.$date || coin.activeAt || null,
+      activeAt: coin.activeAt,
       expiresAt: coin.expiresAt,
       usedAt: coin.usedAt,
-    },
-    accessGrantedUntil: user.accessGrantedUntil,
+      usedForEventId: coin.usedForEventId,
+    }
   });
 });
 

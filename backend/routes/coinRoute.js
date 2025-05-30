@@ -5,7 +5,7 @@ const {
     getUserKeys,
     getUserCoins,
     getAllUsersKeysAndCoins,
-    redeemCoinForAllMatches,
+    redeemCoinForEvent,
     redeemSharedCoin,
     checkCoinExpiry,
     getMatchDetailsForUser,
@@ -18,7 +18,7 @@ router.get('/keys-coins', isAuthenticatedUser, authorizeRoles("admin"),getAllUse
 
 
 // Route to redeem a coin for a match
-router.post('/redeem/all-matches', isAuthenticatedUser, redeemCoinForAllMatches);
+router.post('/redeem/event', isAuthenticatedUser, redeemCoinForEvent);
 
 
 // Route to use a coin (activate match pass)

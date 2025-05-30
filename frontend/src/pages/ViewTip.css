@@ -10,7 +10,9 @@ body {
 .card-body {
   padding: 0.5rem;
 }
-
+.center{
+  text-align-last: center;
+}
 
 /* Left-right bounce animation */
 @keyframes bounceLR {

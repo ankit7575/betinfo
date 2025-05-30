@@ -47,7 +47,9 @@ const PlansData = lazy(() => import('./components/dashboard/pages/plans/PlansDat
 
 // Transactions (Correct based on pages/transactions)
 const AllTransactions = lazy(() => import('./components/dashboard/pages/transactions/Alltransactions'));
-
+// ---- LEGAL PAGES (add these!) ----
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const Disclaimer = lazy(() => import('./pages/Disclaimer'));
 const App = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
@@ -62,7 +64,8 @@ const App = () => {
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-
+<Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/disclaimer" element={<Disclaimer />} />
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/demo" element={<Demo />} />

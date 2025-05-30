@@ -1,12 +1,14 @@
+// models/matchModel.js
+
 const mongoose = require('mongoose');
 
-// Odds schema
+// Odds (for Betfair API odds array)
 const oddsSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   size: { type: Number, required: true }
 }, { _id: false });
 
-// Admin odds/amount/profit history schema
+// Admin odds/amount/profit history per runner (for lay/back tracking)
 const adminOddsHistorySchema = new mongoose.Schema({
   odds: {
     back: { type: Number, default: 0 },
@@ -23,7 +25,7 @@ const adminOddsHistorySchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 }, { _id: false });
 
-// Admin Betfair Odds schema (for team1, team2 etc.)
+// Admin-set odds for each runner
 const adminBetfairOddsSchema = new mongoose.Schema({
   selectionId: { type: Number, required: true },
   runnerName: { type: String, required: true },
@@ -43,7 +45,7 @@ const adminBetfairOddsSchema = new mongoose.Schema({
   layingHistory: [adminOddsHistorySchema]
 }, { _id: false });
 
-// User-specific odds history (per snapshot)
+// User-specific odds snapshot history (per update)
 const userBetfairOddsHistorySchema = new mongoose.Schema({
   odds: {
     back: { type: Number, default: 0 },
@@ -58,9 +60,9 @@ const userBetfairOddsHistorySchema = new mongoose.Schema({
     lay: { type: Number, default: 0 }
   },
   timestamp: { type: Date, default: Date.now }
-  // No expiresAt in history for frontend!
 }, { _id: false });
 
+// User-calculated odds for a runner (per user, per runner)
 const userBetfairOddsSchema = new mongoose.Schema({
   userId: { type: String, required: true },
   selectionId: { type: Number, required: true },
@@ -80,11 +82,10 @@ const userBetfairOddsSchema = new mongoose.Schema({
   referenceAdminOpeningBalance: { type: Number, default: 200000 },
   userOpeningBalance: { type: Number },
   createdAt: { type: Date, default: Date.now },
-  history: [userBetfairOddsHistorySchema] // per update
-  // expiresAt is NOT included in the schema that is sent to frontend!
+  history: [userBetfairOddsHistorySchema]
 }, { _id: false });
 
-// Runner odds from Betfair API (unchanged)
+// Real-time runner odds from Betfair API (for market display)
 const runnerOddsSchema = new mongoose.Schema({
   selectionId: { type: Number, required: true },
   runnerName: { type: String, required: true },
@@ -98,7 +99,7 @@ const runnerOddsSchema = new mongoose.Schema({
   }]
 }, { _id: false });
 
-// Match Schema
+// --- Main Match Schema ---
 const matchSchema = new mongoose.Schema({
   eventId: { type: String, required: true, unique: true },
   eventName: { type: String },
@@ -106,10 +107,11 @@ const matchSchema = new mongoose.Schema({
   competitionName: { type: String, required: true },
   sportName: { type: String },
 
-  // === Admin Selection and Status fields ===
-  selected: { type: Boolean, default: false },             // Admin can select this match for frontend display
-  adminStatus: { type: String, default: "" },              // Admin can write any custom status (Rainy, Postponed, etc.)
+  // --- Admin controls ---
+  selected: { type: Boolean, default: true },
+  adminStatus: { type: String, default: "" }, // e.g., Rainy, Postponed
 
+  // Runners/Players info
   matchRunners: [
     {
       runnerName: { type: String, required: true },
@@ -117,6 +119,7 @@ const matchSchema = new mongoose.Schema({
     }
   ],
 
+  // Market info
   markets: [
     {
       marketId: { type: String, required: true },
@@ -125,8 +128,11 @@ const matchSchema = new mongoose.Schema({
   ],
 
   openDate: { type: Date, required: true },
-  status: { type: String }, // System/live/fetched status
+  expiresAt: { type: Date }, // <-- For TTL auto-delete after 48 hours
 
+  status: { type: String }, // Fetched/derived
+
+  // Scoreboard/Stats (example for cricket)
   scoreData: {
     score: { type: String },
     score2: { type: String },
@@ -140,28 +146,37 @@ const matchSchema = new mongoose.Schema({
 
   openingbalance: { type: Number, default: 200000 },
 
+  // Investment history for this match
   userOpeningbalanceHistory: [{
     userId: { type: String },
     amount: { type: Number },
     date: { type: Date, default: Date.now }
   }],
 
-  adminBetfairOdds: [adminBetfairOddsSchema],
-
-  betfairOdds: [runnerOddsSchema],
-
-  userBetfairOdds: [userBetfairOddsSchema]
+  // --- Odds Data ---
+  adminBetfairOdds: [adminBetfairOddsSchema], // Admin-defined
+  betfairOdds: [runnerOddsSchema],            // Live odds feed
+  userBetfairOdds: [userBetfairOddsSchema],   // User-calculated
 
 }, { timestamps: true });
 
+// --- Indexes for faster query ---
 matchSchema.index({ eventId: 1, sportName: 1 }, { unique: true });
+// --- TTL index for auto-delete after 48 hours
+matchSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
+// Pre-save: Validate & set expiresAt
 matchSchema.pre('save', function (next) {
-  this.adminBetfairOdds.forEach(adminOdds => {
+  // Validate required runner fields
+  for (const adminOdds of this.adminBetfairOdds) {
     if (!adminOdds.runnerName || !adminOdds.selectionId) {
       return next(new Error('runnerName and selectionId must be set in adminBetfairOdds.'));
     }
-  });
+  }
+  // Set expiresAt to 48 hours after openDate if not already set
+  if (!this.expiresAt && this.openDate) {
+    this.expiresAt = new Date(this.openDate.getTime() + 48 * 60 * 60 * 1000);
+  }
   next();
 });
 

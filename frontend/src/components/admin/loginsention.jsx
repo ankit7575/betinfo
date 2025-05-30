@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../actions/userAction.js';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importing the eye icons
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import styles from './LoginSection.module.css';
 
 const LoginSection = () => {
@@ -15,7 +15,7 @@ const LoginSection = () => {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if authenticated
   useEffect(() => {
@@ -58,7 +58,7 @@ const LoginSection = () => {
 
         <div className={styles.passwordWrapper}>
           <input
-            type={showPassword ? 'text' : 'password'} // Toggle between text and password
+            type={showPassword ? 'text' : 'password'}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -68,9 +68,9 @@ const LoginSection = () => {
           <button
             type="button"
             className={styles.showPasswordButton}
-            onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
+            onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Show eye icon based on state */}
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
 
@@ -78,18 +78,25 @@ const LoginSection = () => {
           {loading ? 'Logging in...' : 'Login'}
         </button>
 
-        <button
-          type="button"
-          className={styles.signupButton}
-          onClick={() => navigate('/signup')}
-        >
-          Sign Up
-        </button>
+        {/* Sign Up Button with refresh if on /signup */}
+       <button
+  type="button"
+  className={styles.signupButton}
+  onClick={() => {
+    if (window.location.pathname === '/signup') {
+      window.location.reload();
+    } else {
+      navigate('/signup');
+    }
+  }}
+>
+  Sign Up
+</button>
 
         <button
           type="button"
           className={styles.homeButton}
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/', { replace: true })}
         >
           Home
         </button>

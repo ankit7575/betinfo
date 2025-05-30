@@ -153,7 +153,7 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
                     marketName: market.marketName,
                 })),
                 openDate: match.openDate,
-                selected: false,      // Admin can mark true later
+                selected: true,      // Admin can mark true later
                 adminStatus: "",      // Admin can set custom status later
             });
 
@@ -210,7 +210,7 @@ const getTennisMatches = catchAsyncErrors(async (req, res, next) => {
           marketName: market.marketName,
         })),
         openDate: match.openDate,
-        selected: false,      // Admin can mark true later
+        selected: true,      // Admin can mark true later
         adminStatus: "",      // Admin can set custom status later
       });
       await matchDoc.save();
@@ -266,7 +266,7 @@ const getSoccerMatches = catchAsyncErrors(async (req, res, next) => {
           marketName: market.marketName,
         })),
         openDate: match.openDate,
-        selected: false,   // Admin can mark true later
+        selected: true,   // Admin can mark true later
         adminStatus: "",   // Admin can set custom status later
       });
       await matchDoc.save();
@@ -625,6 +625,67 @@ const addAdminBetfairOdds = catchAsyncErrors(async (req, res, next) => {
 
 
 // Controller: Get odds + investment
+// const getUserMatchOddsAndInvestment = catchAsyncErrors(async (req, res) => {
+//   const io = req.app.get("io");
+//   const { eventId } = req.params;
+//   const userId = req.user?._id?.toString();
+
+//   const user = await User.findById(userId);
+//   if (!user) return res.status(401).json({ success: false, message: "Unauthorized: User not found." });
+
+//   const now = new Date();
+
+//   const hasValidCoin = user.keys.some((key) =>
+//     key.coin.some((coin) => coin.usedAt && new Date(coin.expiresAt) > now)
+//   );
+
+//   if (!hasValidCoin)
+//     return res.status(403).json({ success: false, message: "Access denied: Please redeem a valid coin to view match odds." });
+
+//   const match = await Match.findOne({ eventId });
+//   if (!match) return res.status(404).json({ success: false, message: "Match not found." });
+
+//   // Get user's last investment time
+//   const investmentEntry = match.userOpeningbalanceHistory
+//     .filter(entry => entry.userId.toString() === userId)
+//     .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+//   if (!investmentEntry)
+//     return res.status(404).json({ success: false, message: "User investment not found." });
+
+//   const userOpeningBalance = investmentEntry.amount;
+//   const adminOpeningBalance = match.openingbalance || 200000;
+//   const investmentTime = new Date(investmentEntry.date);
+
+//   // Find all odds generated for this user
+//   const allUserOdds = (match.userBetfairOdds || []).filter(
+//     o => o.userId === userId
+//   );
+
+//   // Only show "current" odds that were created AT OR AFTER their investment time
+//   const currentSessionOdds = allUserOdds.filter(
+//     o => new Date(o.createdAt) >= investmentTime
+//   );
+
+//   // Optionally, filter history in each odds object to only post-investment entries
+//   const sanitizedOdds = sanitizeOdds(currentSessionOdds);
+
+//   // You can also add allUserOdds (sanitized) as a "fullHistory" field if needed
+
+//   const responsePayload = {
+//     success: true,
+//     userId,
+//     eventId,
+//     openingbalance: userOpeningBalance,
+//     oddsHistory: sanitizedOdds,
+//     // fullOddsHistory: sanitizeOdds(allUserOdds) // optional
+//   };
+
+//   io.to(userId).emit("userOddsUpdated", responsePayload);
+
+//   res.status(200).json(responsePayload);
+// });
+// Controller: Get odds + investment (user must have valid coin for this match event)
 const getUserMatchOddsAndInvestment = catchAsyncErrors(async (req, res) => {
   const io = req.app.get("io");
   const { eventId } = req.params;
@@ -635,12 +696,17 @@ const getUserMatchOddsAndInvestment = catchAsyncErrors(async (req, res) => {
 
   const now = new Date();
 
-  const hasValidCoin = user.keys.some((key) =>
-    key.coin.some((coin) => coin.usedAt && new Date(coin.expiresAt) > now)
+  // Must have a coin for THIS eventId
+  const hasValidCoin = user.keys.some(key =>
+    key.coin.some(coin =>
+      coin.usedForEventId === eventId &&
+      coin.usedAt &&
+      new Date(coin.expiresAt) > now
+    )
   );
 
   if (!hasValidCoin)
-    return res.status(403).json({ success: false, message: "Access denied: Please redeem a valid coin to view match odds." });
+    return res.status(403).json({ success: false, message: "Access denied: Please redeem a valid coin for this match event." });
 
   const match = await Match.findOne({ eventId });
   if (!match) return res.status(404).json({ success: false, message: "Match not found." });
@@ -669,8 +735,6 @@ const getUserMatchOddsAndInvestment = catchAsyncErrors(async (req, res) => {
 
   // Optionally, filter history in each odds object to only post-investment entries
   const sanitizedOdds = sanitizeOdds(currentSessionOdds);
-
-  // You can also add allUserOdds (sanitized) as a "fullHistory" field if needed
 
   const responsePayload = {
     success: true,

@@ -120,14 +120,15 @@ export const getUserKeys = () => async (dispatch) => {
   }
 };
 
-// Redeem coin for all matches
-export const redeemCoinForAllMatches = (coinId) => async (dispatch) => {
+// Now takes both coinId and eventId
+export const redeemCoinForAllMatches = (coinId, eventId) => async (dispatch) => {
   try {
     dispatch({ type: REDEEM_COIN_FOR_ALL_MATCHES_REQUEST });
 
+    // API expects { coinId, eventId }
     const { data } = await axios.post(
-      `${API_URL}/redeem/all-matches`,
-      { coinId },
+      `${API_URL}/redeem/event`,
+      { coinId, eventId },
       getAuthConfig()
     );
 

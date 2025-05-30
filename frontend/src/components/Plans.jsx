@@ -39,8 +39,8 @@ const Plans = () => {
           <div key={plan._id} className="loginBox">
                 <h3 className="card-title text-center">{plan.price} USDT</h3>
                 <p className="plan-name text-center">{plan.name}</p>
-                <p><strong>Description:</strong> {plan.description}</p>
-                <p><strong>Total Coins:</strong> {plan.totalCoins}</p>
+                <p className="plan-name text-center"><strong>Description:</strong> {plan.description}</p>
+                <p className="plan-name text-center"><strong>Total Coins:</strong> {plan.totalCoins}</p>
             
             {/* Pay Now button which dispatches selectPlan */}
             <button className="button" onClick={() => handlePay(plan)}>

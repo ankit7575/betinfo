@@ -15,9 +15,9 @@ const sendToken = require("../utils/jwttoken");
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, password, phoneNumber } = req.body;
 
-  // Validate the phone number (optional, can add more checks here if needed)
-  if (!/^\d{10}$/.test(phoneNumber)) {
-    return next(new ErrorHandler("Invalid phone number format", 400));
+  // Validate the phone number: must start with +, 7–18 digits after +
+  if (!/^\+\d{7,18}$/.test(phoneNumber)) {
+    return next(new ErrorHandler("Invalid phone number format. Please include your country code, e.g. +911234567890", 400));
   }
 
   // Check if the user already exists by email
@@ -34,7 +34,7 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const user = new User({
     name,
     email,
-    password,  // Save the hashed password
+    password,  // Will be hashed by mongoose pre-save
     phoneNumber,
     role,
   });
@@ -45,6 +45,7 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   // Send JWT token in the response (assuming sendToken is a utility function to handle JWT)
   sendToken(user, 201, res);
 });
+
 
 
 // Login User

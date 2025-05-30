@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Layout, Button, Drawer } from "antd";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { MenuOutlined } from "@ant-design/icons";
 import logo from "../assets/logo.png";
@@ -47,7 +47,7 @@ const MobileMenuIcon = styled(MenuOutlined)`
   cursor: pointer;
   display: none;
   margin-left: 10px;
-color:white;
+  color: white;
   @media (max-width: 768px) {
     display: block;
   }
@@ -88,17 +88,24 @@ const StyledLink = styled.span`
 const AppLayout = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleNavigateAndReload = (path) => {
     if (location.pathname === path) {
+      // Reload if already on the page
       window.location.reload();
     } else {
-      window.location.href = path;
+      // SPA navigation (no reload)
+      navigate(path);
     }
   };
 
   const handleOpenAccount = () => {
-    window.open("/account", "_blank", "noopener,noreferrer");
+    if (location.pathname === "/account") {
+      window.location.reload();
+    } else {
+      navigate("/account");
+    }
   };
 
   return (
