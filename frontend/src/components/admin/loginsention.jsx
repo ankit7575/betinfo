@@ -17,6 +17,17 @@ const LoginSection = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Auto-refresh on mount if on /login (but only once)
+  useEffect(() => {
+    if (
+      window.location.pathname === '/login' &&
+      !window.location.hash.includes('norefresh')
+    ) {
+      window.location.replace('/login#norefresh');
+      window.location.reload();
+    }
+  }, []);
+
   // Redirect if authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -79,19 +90,19 @@ const LoginSection = () => {
         </button>
 
         {/* Sign Up Button with refresh if on /signup */}
-       <button
-  type="button"
-  className={styles.signupButton}
-  onClick={() => {
-    if (window.location.pathname === '/signup') {
-      window.location.reload();
-    } else {
-      navigate('/signup');
-    }
-  }}
->
-  Sign Up
-</button>
+        <button
+          type="button"
+          className={styles.signupButton}
+          onClick={() => {
+            if (window.location.pathname === '/signup') {
+              window.location.reload();
+            } else {
+              navigate('/signup');
+            }
+          }}
+        >
+          Sign Up
+        </button>
 
         <button
           type="button"

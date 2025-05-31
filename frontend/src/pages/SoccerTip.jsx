@@ -33,6 +33,7 @@ const SoccerTip = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  
   // Local State
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [iframeError, setIframeError] = useState(false);
@@ -50,6 +51,15 @@ const SoccerTip = () => {
   const eventId = query.get('eventId');
   const sportId = 1; // <<<--- Set this manually as required
 
+  // Auto-refresh page only once per event for each session/tab
+  useEffect(() => {
+    if (!eventId) return;
+    const reloadKey = 'soccerTipAutoReloaded_' + eventId;
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+    }
+  }, [eventId]);
   // Redux State Selectors
   const {
     loading,
@@ -197,7 +207,9 @@ const SoccerTip = () => {
       <div className="container-fluid mt-5">
         <div className="row">
           {/* Alerts */}
-          {Array.isArray(user?.transactions) &&
+          {/* Only show transaction pending alert if not already redeemed for this event */}
+          {!alreadyRedeemedCoin &&
+            Array.isArray(user?.transactions) &&
             user.transactions.some((tx) => tx.status?.toLowerCase() === 'pending') && (
               <Alert variant="danger" className="text-center">
                 <strong>⏳ Your transaction is under review.</strong><br />

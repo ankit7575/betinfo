@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 
 const IframeBox = ({
   eventId,
-  sportId,           // 👈 Accept sportId as a prop
+  sportId,
   iframeLoaded,
   setIframeLoaded,
   iframeError,
   setIframeError
 }) => {
-  const [showIframe, setShowIframe] = useState(false);
+  // 👉 Default is ON now!
+  const [showIframe, setShowIframe] = useState(true);
   const [iframeKey, setIframeKey] = useState(Date.now());
   const [showController, setShowController] = useState(true);
   const [fullWidth, setFullWidth] = useState(false);
@@ -22,8 +23,12 @@ const IframeBox = ({
     setShowIframe((prev) => !prev);
   };
 
-  // Build the iframe src using both eventId and sportId
-  const iframeSrc = `https://dpmatka.in/dtv.php?id=${eventId}${sportId ? `&sportid=${sportId}` : ''}${showController ? '' : '&controls=0'}`;
+  // Add autoplay=1 in iframe src to maximize audio autoplay chance
+  const iframeSrc =
+    `https://dpmatka.in/dtv.php?id=${eventId}` +
+    (sportId ? `&sportid=${sportId}` : '') +
+    (showController ? '' : '&controls=0') +
+    '&autoplay=1';
 
   return (
     <div className={`card shadow-sm mb-4 ${fullWidth ? 'w-100' : ''}`}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SimpleStepsSection from "../components/SimpleStepsSection";
 import TipTable from "../components/Home/TipTable";
 import AppLayout from "../layout";
@@ -16,6 +16,15 @@ import { GiCricketBat, GiSoccerBall, GiTennisRacket } from "react-icons/gi";
 
 const Home = () => {
   const [activeMatchType, setActiveMatchType] = useState("cricket");
+
+  // --- AUTO REFRESH ON FIRST VISIT PER TAB/SESSION ---
+  useEffect(() => {
+    const reloadKey = 'homePageAutoReloaded';
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+    }
+  }, []);
 
   return (
     <>

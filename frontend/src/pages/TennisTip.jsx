@@ -33,6 +33,21 @@ const TennisTip = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Get eventId from URL immediately for reload logic
+  const query = new URLSearchParams(location.search);
+  const eventId = query.get('eventId');
+  const sportId = 2; // <<<--- Set this manually as required
+
+  // Auto-refresh page only once per event
+  useEffect(() => {
+    if (!eventId) return;
+    const reloadKey = 'tennisTipAutoReloaded_' + eventId;
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+    }
+  }, [eventId]);
+
   // Local State
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [iframeError, setIframeError] = useState(false);
@@ -44,11 +59,6 @@ const TennisTip = () => {
   const [showCoinModal, setShowCoinModal] = useState(false);
   const [coinMessage, setCoinMessage] = useState('');
   const [redeemingCoin, setRedeemingCoin] = useState(false);
-
-  // Get eventId from URL
-  const query = new URLSearchParams(location.search);
-  const eventId = query.get('eventId');
-  const sportId = 2; // <<<--- Set this manually as required
 
   // Redux State Selectors
   const {
@@ -201,7 +211,9 @@ const TennisTip = () => {
       <div className="container-fluid mt-5">
         <div className="row">
           {/* Alerts */}
-          {Array.isArray(user?.transactions) &&
+          {/* Transaction alert only if coin not redeemed for this event */}
+          {!alreadyRedeemedCoin &&
+            Array.isArray(user?.transactions) &&
             user.transactions.some((tx) => tx.status?.toLowerCase() === 'pending') && (
               <Alert variant="danger" className="text-center">
                 <strong>⏳ Your transaction is under review.</strong><br />
@@ -219,9 +231,9 @@ const TennisTip = () => {
               Please wait if you have made a transaction.<br />
               If not, please purchase coins to continue.
               <div className="mt-3">
-             <Button variant="primary" onClick={() => navigate('/payment')}>
-      Buy Coins
-    </Button>
+                <Button variant="primary" onClick={() => navigate('/payment')}>
+                  Buy Coins
+                </Button>
               </div>
             </Alert>
           )}

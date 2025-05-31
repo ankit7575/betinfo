@@ -12,7 +12,16 @@ const Account = () => {
   const { loading, user, isAuthenticated, error } = useSelector((state) => state.user);
 
   // Debugging - log the current state
-  console.log("Redux State:", { loading, user, isAuthenticated, error });
+  // console.log("Redux State:", { loading, user, isAuthenticated, error });
+
+  // Auto-refresh logic (runs only once per tab session)
+  useEffect(() => {
+    const reloadKey = 'accountPageAutoReloaded';
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+    }
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {

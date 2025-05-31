@@ -6,7 +6,6 @@ import socket from '../socket';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ViewTip.css';
 
-// Sections and Components
 import AppLayout from '../layout';
 import Footer from '../components/Footer';
 import ScoreboardCard from './sections/ScoreboardCard';
@@ -39,24 +38,26 @@ const ViewTip = () => {
   const [iframeError, setIframeError] = useState(false);
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [investmentLoading, setInvestmentLoading] = useState(false);
-  const [, setTransactionError] = useState('');
+  const [transactionError, setTransactionError] = useState('');
   const [latestOddsHistory, setLatestOddsHistory] = useState([]);
   const [runnerOdds, setRunnerOdds] = useState([]);
   const [showCoinModal, setShowCoinModal] = useState(false);
   const [coinMessage, setCoinMessage] = useState('');
   const [redeemingCoin, setRedeemingCoin] = useState(false);
 
-  // Update 'now' every second for real-time expiry checks
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   // Get eventId from URL
   const query = new URLSearchParams(location.search);
-  const eventId = (query.get('eventId') || '').toString();
+  const eventId = query.get('eventId');
 
+    // Auto-refresh page only once per event
+    useEffect(() => {
+      if (!eventId) return;
+      const reloadKey = 'viewtipAutoReloaded_' + eventId;
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, 'true');
+        window.location.reload();
+      }
+    }, [eventId]);
   // Redux State Selectors
   const {
     loading,
@@ -67,6 +68,32 @@ const ViewTip = () => {
   } = useSelector((state) => state.match || {});
   const { user, loading: userLoadingState } = useSelector((state) => state.user || {});
   const userId = user?._id;
+
+  // --- Coin Logic ---
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const allCoins = user?.keys?.flatMap((key) => key.coin || []) || [];
+
+  // Find if a coin is redeemed for *this* event and still valid
+  const alreadyRedeemedCoin = allCoins.find(
+    (coin) =>
+      coin.usedForEventId?.toString() === eventId &&
+      coin.expiresAt &&
+      new Date(coin.expiresAt) > now
+  );
+
+  // Coins not yet used for any event
+  const unusedCoins = allCoins.filter((coin) => !coin.usedAt);
+
+  // Show 'No Coins' only if NOT already redeemed for this match
+  const hasNoCoins = user?.coinAvailable === 0 && !alreadyRedeemedCoin;
+  // Show 'Redeem' only if not already redeemed for this event, and coins are available
+  const showRedeemPrompt = user?.coinAvailable > 0 && !alreadyRedeemedCoin;
+  const openingBalanceMissing = !userOddsAndInvestment?.openingbalance;
 
   // Fetch initial data on mount
   const fetchInitialData = useCallback(() => {
@@ -87,6 +114,7 @@ const ViewTip = () => {
   // Real-time odds updates (socket.io)
   useEffect(() => {
     if (!userId || !eventId) return;
+
     socket.emit('join', userId);
     socket.emit('requestUserOddsUpdate', { eventId, userId });
 
@@ -113,11 +141,10 @@ const ViewTip = () => {
         if (result?.payload?.runners) {
           setRunnerOdds(result.payload.runners);
         }
-      } catch {
+      } catch (err) {
         setRunnerOdds([]);
       }
     };
-
     if (eventId) fetchAllRunnersOdds();
   }, [dispatch, eventId]);
 
@@ -135,6 +162,34 @@ const ViewTip = () => {
       setTransactionError('⚠️ Transaction failed: ' + (err.message || 'Please try again.'));
     } finally {
       setInvestmentLoading(false);
+    }
+  };
+
+  // Coin Redeem Handler (with modal)
+  const handleRedeemClick = () => {
+    setCoinMessage('');
+    setShowCoinModal(true);
+  };
+
+  const handleSelectCoinToRedeem = async (coinId) => {
+    setRedeemingCoin(true);
+    setCoinMessage('');
+    try {
+      await dispatch(redeemCoinForAllMatches(coinId, eventId));
+      setCoinMessage('Coin redeemed successfully! Access granted for this match for 24 hours.');
+      setShowCoinModal(false);
+      await dispatch(loadUser());
+      await dispatch(getUserMatchOddsAndInvestment(eventId));
+    } catch (error) {
+      let msg =
+        (error && error.response && error.response.data && error.response.data.message) ||
+        error.message ||
+        typeof error === 'string'
+          ? error
+          : 'Failed to redeem coin. Please try again.';
+      setCoinMessage(`Error: ${msg}`);
+    } finally {
+      setRedeemingCoin(false);
     }
   };
 
@@ -170,60 +225,6 @@ const ViewTip = () => {
     status: 'Match has not started yet or no live data available',
   };
 
-  // --- COIN REDEEM LOGIC ---
-  const allCoins = user?.keys?.flatMap((key) => key.coin || []) || [];
-
-  // Find a coin already redeemed for this event and not expired
-  const alreadyRedeemedCoin = allCoins.find(
-    (coin) =>
-      (coin.usedForEventId?.toString() === eventId) &&
-      coin.expiresAt &&
-      new Date(coin.expiresAt) > now
-  );
-
-  // Unused coins (not yet used for any event)
-  const unusedCoins = allCoins.filter(
-    (coin) => !coin.usedAt
-  );
-
-  // Only show "No Coins Available!" if NOT already redeemed for this match
-  const hasNoCoins = user?.coinAvailable === 0 && !alreadyRedeemedCoin;
-
-  // Only show redeem prompt if not already redeemed for this event
-  const showRedeemPrompt = user?.coinAvailable > 0 && !alreadyRedeemedCoin;
-  const openingBalanceMissing = !userOddsAndInvestment?.openingbalance;
-
-  // --- COIN REDEEM HANDLER ---
-  const handleRedeemClick = () => {
-    setCoinMessage('');
-    setShowCoinModal(true);
-  };
-
-// ... [imports as in your code] ...
-
-const handleSelectCoinToRedeem = async (coinId) => {
-  setRedeemingCoin(true);
-  setCoinMessage('');
-  try {
-    await dispatch(redeemCoinForAllMatches(coinId, eventId));
-    setCoinMessage('Coin redeemed successfully! Access granted for this match for 24 hours.');
-    setShowCoinModal(false);
-    // <-- Add page refresh here
-    window.location.reload();
-  } catch (error) {
-    let msg =
-      (error && error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      typeof error === 'string'
-        ? error
-        : 'Failed to redeem coin. Please try again.';
-    setCoinMessage(`Error: ${msg}`);
-  } finally {
-    setRedeemingCoin(false);
-  }
-};
-
-
   // Loading Spinner
   if (loading || userLoading || userLoadingState) {
     return (
@@ -239,27 +240,34 @@ const handleSelectCoinToRedeem = async (coinId) => {
       <div className="container-fluid mt-5">
         <div className="row">
           {/* Alerts */}
-          {Array.isArray(user?.transactions) &&
+          {/* Only show transaction pending alert if not already redeemed for this event */}
+          {!alreadyRedeemedCoin &&
+            Array.isArray(user?.transactions) &&
             user.transactions.some((tx) => tx.status?.toLowerCase() === 'pending') && (
               <Alert variant="danger" className="text-center">
                 <strong>⏳ Your transaction is under review.</strong><br />
                 You will receive coins once it is verified by our team.
               </Alert>
             )}
-
+          {transactionError && (
+            <Alert variant="danger" className="text-center">
+              {transactionError}
+            </Alert>
+          )}
+          {/* No Coins alert: only if NOT already redeemed for this event */}
           {!alreadyRedeemedCoin && hasNoCoins && (
             <Alert variant="warning" className="text-center">
               <strong>⚠️ No Coins Available!</strong><br />
               Please wait if you have made a transaction.<br />
               If not, please purchase coins to continue.
               <div className="mt-3">
-               <Button variant="primary" onClick={() => navigate('/payment')}>
-      Buy Coins
-    </Button>
+                <Button variant="primary" onClick={() => navigate('/payment')}>
+                  Buy Coins
+                </Button>
               </div>
             </Alert>
           )}
-
+          {/* Redeem prompt: only if NOT already redeemed for this event */}
           {!alreadyRedeemedCoin && showRedeemPrompt && (
             <>
               <Alert variant="info" className="text-center">
@@ -282,13 +290,11 @@ const handleSelectCoinToRedeem = async (coinId) => {
               )}
             </>
           )}
-
           {openingBalanceMissing && (
             <Alert variant="warning" className="text-center">
               <strong>⚠️ Please add your Opening Balance to proceed.</strong>
             </Alert>
           )}
-
           <div className="col-lg-8 col-md-8 col-sm-8 col-12">
             {/* Coin selection Modal */}
             <Modal show={showCoinModal} onHide={() => setShowCoinModal(false)} centered>
@@ -321,8 +327,7 @@ const handleSelectCoinToRedeem = async (coinId) => {
                 )}
               </Modal.Body>
             </Modal>
-
-            {/* Scoreboard & Market/Odds */}
+            {/* Scoreboard & Market/Tips */}
             <div className="row">
               <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                 <OpeningBalance
@@ -335,7 +340,6 @@ const handleSelectCoinToRedeem = async (coinId) => {
               <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                 <BalanceDisplay amount={userOddsAndInvestment?.openingbalance} />
               </div>
-              {/* --- ALWAYS SHOW MATCH ODDS TABLE (BetfairMarketTable) --- */}
               <div className="col-lg-12 col-md-12 col-sm-12">
                 <BetfairMarketTable
                   matchData={{
@@ -346,7 +350,7 @@ const handleSelectCoinToRedeem = async (coinId) => {
                   socket={socket}
                 />
               </div>
-              {/* --- SHOW TABLES ONLY IF USER HAS VALID COIN FOR THIS EVENT --- */}
+              {/* Only show LiveTipsTable & TipHistoryTable if coin is redeemed for this event */}
               {alreadyRedeemedCoin && (
                 <>
                   <div className='col-lg-12 col-md-12 col-12' >
@@ -370,7 +374,6 @@ const handleSelectCoinToRedeem = async (coinId) => {
               )}
             </div>
           </div>
-
           {/* Sidebar Column */}
           <div className="col-lg-4 col-md-4 col-sm-4 col-12">
             <ScoreboardCard
@@ -379,11 +382,11 @@ const handleSelectCoinToRedeem = async (coinId) => {
             />
             <IframeBox
               eventId={eventId}
-              sportId={sportId}
               iframeLoaded={iframeLoaded}
               setIframeLoaded={setIframeLoaded}
               iframeError={iframeError}
               setIframeError={setIframeError}
+              sportId={sportId}
             />
           </div>
         </div>
