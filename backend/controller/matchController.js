@@ -35,9 +35,9 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
     const response = await axios.post(
       apiUrl, 
       {
-        investmentLimit: investmentLimit,
+        investmentLimit: parseInt(investmentLimit),
         side: side,
-        odd: odd,
+        odd: parseFloat(odd),
       },
       {
         headers: {
@@ -442,26 +442,29 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    const runnerData = await Promise.all(marketData.runners.map(async (runner) => ({
+    const runnerData = await Promise.all(marketData.runners.map(async (runner) => {
+      const backAmount = await getAmount({ side: "Back", odd: runner?.ex?.availableToBack[0]?.price });
+      const layAmount = await getAmount({ side: "Lay", odd: runner?.ex?.availableToLay[0]?.price });
+      return {
       selectionId: runner.selectionId,
       runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
       lastPriceTraded: runner.lastPriceTraded || 0,
-      availableToBack: runner.ex?.availableToBack?.map(async (back, index) => ({
+      availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
         price: back.price,
         size: back.size,
-        amount: index === 0 ? await getAmount({side: "Back", odd: back.price}) : 0,
+        amount: index === 0 ? backAmount : 0,
       })) || [],
-      availableToLay: runner.ex?.availableToLay?.map(async (lay, index) => ({
+      availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
         price: lay.price,
         size: lay.size,
-        amount: index === 0 ? await getAmount({side: "Lay", odd: lay.price}) : 0,
+        amount: index === 0 ? layAmount : 0,
       })) || [],
       oddsHistory: [{
         availableToBack: runner.ex?.availableToBack || [],
         availableToLay: runner.ex?.availableToLay || [],
         timestamp: new Date()
       }]
-    })));
+    }}));
 
      match.betfairOdds = runnerData;
     if (!isFromCache && typeof match.save === "function") {
