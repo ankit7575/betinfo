@@ -26,48 +26,13 @@ const getMatchFromTempStore = (eventId) => {
   return tempStore[eventId];
 };
 
-const netProfit = async ({runnerOdds, runners}) => {
-  if (!runnerOdds || !runners) {
-    return []
-  }
-  const selection_ids = [];
-  const history = [];
-  runners.map(runner => {
-    selection_ids.push(parseInt(runner.runnerId));
-  });
-  runnerOdds.map((runnerOdd) =>
-    runnerOdd.layingHistory?.map((tipHistory) => {
-      history.push({
-        selection_id : parseInt(runnerOdd.selectionId),
-        side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
-        odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
-        amount : parseInt(tipHistory.Amount?.back ?? tipHistory.Amount?.lay ?? 0),
-      });
-    })
-  );
-  const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
-  const { data } = await axios.post(
-    apiUrl, 
-    {
-      selection_ids: selection_ids,
-      history: history,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
-      },
-    }
-  );
-  return data;
-}
-
 const getAmount = async ({side, odd, investmentLimit = 0}) => {
   if (!side || !odd) {
     return 0
   }
  
   const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
-  const { amount } = await axios.post(
+  const res = await axios.post(
     apiUrl, 
     {
       investmentLimit: investmentLimit,
@@ -80,7 +45,7 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
       }
     }
   );
-  return amount;
+  return res;
 }
 
 // Store individual runner data with timestamp
@@ -351,6 +316,35 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Match not found in database.' });
         }
 
+        const selection_ids = [];
+        const history = [];
+        match.matchRunners.map(runner => {
+          selection_ids.push(parseInt(runner.runnerId));
+        });
+        match.adminBetfairOdds.map((runnerOdd) =>
+          runnerOdd.layingHistory?.map((tipHistory) => {
+            history.push({
+              selection_id : parseInt(runnerOdd.selectionId),
+              side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
+              odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
+              amount : parseInt(tipHistory.Amount?.back ?? tipHistory.Amount?.lay ?? 0),
+            });
+          })
+        );
+        const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
+        const { data } = await axios.post(
+          apiUrl, 
+          {
+            selection_ids: selection_ids,
+            history: history,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
+            },
+          }
+        );
+
         // Optional: You can filter or transform the data as needed
         const processedMatch = {
             eventId: match.eventId,
@@ -370,7 +364,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
             adminBetfairOdds: match.adminBetfairOdds,
             betfairOdds: match.betfairOdds,
             scoreData: match.scoreData,
-            netProfit: await netProfit({runnerOdds: match.adminBetfairOdds, runners: match.matchRunners}) ?? [],
+            netProfit: data ?? [],
         };
 
         // ✅ Store match in temp memory
@@ -452,7 +446,8 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       availableToBack: runner.ex?.availableToBack?.map((back, index) => {
         let amount;
         const getamount = async () => {
-          amount = await getAmount({side: "Back", odd: back.price});
+          const { amount } = await getAmount({side: "Back", odd: back.price});
+          amount = amount;
         }
         getamount();
         return {
@@ -464,7 +459,8 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       availableToLay: runner.ex?.availableToLay?.map((lay, index) => {
         let amount;
         const getamount = async () => {
-          amount = await getAmount({side: "Lay", odd: lay.price});
+          const { amount } = await getAmount({side: "Lay", odd: lay.price});
+          amount = amount;
         }
         getamount();
         return {
