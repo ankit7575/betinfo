@@ -330,7 +330,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
               selection_id : parseInt(runnerOdd.selectionId),
               side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
               odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
-              amount : parseInt(tipHistory.Amount?.back ?? tipHistory.Amount?.lay ?? 0),
+              amount : parseInt(tipHistory.Ammount?.back ?? tipHistory.Ammount?.lay ?? 0),
             });
           })
         );
@@ -338,7 +338,6 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
           selection_ids: selection_ids,
           history: history,
         };
-        console.log(input);
         const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
         const { data } = await axios.post(
           apiUrl, 
