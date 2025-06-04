@@ -26,6 +26,63 @@ const getMatchFromTempStore = (eventId) => {
   return tempStore[eventId];
 };
 
+const netProfit = async ({runnerOdds, runners}) => {
+  if (!runnerOdds || !runners) {
+    return []
+  }
+  const selection_ids = [];
+  const history = [];
+  runners.map(runner => {
+    selection_ids.push(parseInt(runner.runnerId));
+  });
+  runnerOdds.map((runnerOdd) =>
+    runnerOdd.layingHistory?.map((tipHistory) => {
+      history.push({
+        selection_id : parseInt(runnerOdd.selectionId),
+        side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
+        odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
+        amount : parseInt(tipHistory.Amount?.back ?? tipHistory.Amount?.lay ?? 0),
+      });
+    })
+  );
+  const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
+  const { data } = await axios.post(
+    apiUrl, 
+    {
+      selection_ids: selection_ids,
+      history: history,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
+      },
+    }
+  );
+  return data;
+}
+
+const getAmount = async ({side, odd, investmentLimit = 0}) => {
+  if (!side || !odd) {
+    return 0
+  }
+ 
+  const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
+  const { amount } = await axios.post(
+    apiUrl, 
+    {
+      investmentLimit: investmentLimit,
+      side: side,
+      odd: odd,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
+      }
+    }
+  );
+  return amount;
+}
+
 // Store individual runner data with timestamp
 const setRunnerInTempStore = (eventId, selectionId, runnerData) => {
   if (!eventId || !selectionId || !runnerData) return;
@@ -313,6 +370,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
             adminBetfairOdds: match.adminBetfairOdds,
             betfairOdds: match.betfairOdds,
             scoreData: match.scoreData,
+            netProfit: netProfit({runnerOdds: match.adminBetfairOdds, runners: match.matchRunners}),
         };
 
         // ✅ Store match in temp memory
@@ -394,8 +452,16 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       availableToBack: runner.ex?.availableToBack || [],
       availableToLay: runner.ex?.availableToLay || [],
       oddsHistory: [{
-        availableToBack: runner.ex?.availableToBack || [],
-        availableToLay: runner.ex?.availableToLay || [],
+        availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
+            price: back.price,
+            size: back.size,
+            amount: index === 0 ? getAmount({side: "Back", odd: back.price}): 0,
+        })) || [],
+        availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
+            price: lay.price,
+            size: lay.size,
+            amount: index === 0 ? getAmount({side: "Lay", odd: lay.price}): 0,
+        })) || [],
         timestamp: new Date()
       }]
     }));
