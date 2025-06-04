@@ -3,9 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import './BetfairMarketTable.css';
 
 // Accept socket as a prop!
-const BetfairMarketTable = ({ matchData, socket }) => {
+const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }) => {
+  if (!handleSubmit) {
+    handleSubmit = () => {};
+  }
   const [searchParams] = useSearchParams();
-  const currentEventId = searchParams.get('eventId');
+  const currentEventId = searchParams.get('eventId') ?? matchData?.eventId;
 
   const [liveRunners, setLiveRunners] = useState([]);
   const [socketConnected, setSocketConnected] = useState(socket?.connected || false);
@@ -17,7 +20,6 @@ const BetfairMarketTable = ({ matchData, socket }) => {
   useEffect(() => {
     setLiveRunners(initialRunners);
   }, [initialRunners]);
-
   useEffect(() => {
     if (!socket) return;
 
@@ -28,11 +30,10 @@ const BetfairMarketTable = ({ matchData, socket }) => {
     socket.on('disconnect', handleDisconnect);
 
     const handleOddsUpdate = (data) => {
-      if (data?.eventId !== currentEventId || !data?.odds?.runners) return;
+      if (data?.eventId !== currentEventId|| !data?.odds?.runners) return;
 
       const updated = data.odds.runners;
       const newHighlights = {};
-
       setLiveRunners(prev =>
         updated.map((updatedRunner) => {
           const prevRunner = prev.find(p => p.selectionId === updatedRunner.selectionId) || {};
@@ -79,18 +80,33 @@ const BetfairMarketTable = ({ matchData, socket }) => {
     const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0 };
     const isBackHighlight = highlightMap[`${runner.selectionId}-back`];
     const isLayHighlight = highlightMap[`${runner.selectionId}-lay`];
+    const netProfit = pnl?.find((net) => Number(net?.selection_id) === Number(runner.selectionId))
 
     return (
       <tr key={runner.selectionId || runnerName}>
         <td className="runner-name-cell">{runnerName}</td>
-        <td className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
+        <td onClick={() => handleSubmit({
+          runner: runner.selectionId,
+          side: 'Back',
+          odd: backItem.price,
+          amount: backItem.amount,
+        })} className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
           <div className="pending-odds">{backItem.price}</div>
-          <div className="pending-stake">{backItem.size}</div>
+          <div className="pending-stake">{backItem.amount}</div>
         </td>
-        <td className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
+        <td onClick={() => handleSubmit({
+          runner: runner.selectionId,
+          side: 'Lay',
+          odd: layItem.price,
+          amount: layItem.amount,
+        })} className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
           <div className="pending-odds">{layItem.price}</div>
-          <div className="pending-stake">{layItem.size}</div>
+          <div className="pending-stake">{layItem.amount}</div>
         </td>
+        <td className={`gap-2 text-center`}>
+            <span className={`text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white' }`}>{ netProfit?.net || 0 } {netProfit?.net > 0 ? '▲' : netProfit?.net < 0 ? '▼' : '' }</span>
+            <span className={`ml-2 text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white' }`}>{ netProfit?.percentage }</span>
+          </td>
       </tr>
     );
   };
@@ -107,12 +123,13 @@ const BetfairMarketTable = ({ matchData, socket }) => {
             <th>Team</th>
             <th>Back</th>
             <th>Lay</th>
+            <th>Profit/Loss</th>
           </tr>
         </thead>
         <tbody>
           {liveRunners.length > 0 ? liveRunners.map(renderRow) : (
             <tr>
-              <td colSpan="3" className="text-center">No runner data.</td>
+              <td colSpan="4" className="text-center">No runner data.</td>
             </tr>
           )}
         </tbody>

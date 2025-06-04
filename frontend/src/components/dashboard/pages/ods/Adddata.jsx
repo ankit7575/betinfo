@@ -2,22 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getMatchById, addAdminBetfairOdds } from '../../../../actions/matchaction';
+import { getMatchById, addAdminBetfairOdds, getBetfairOddsForRunner } from '../../../../actions/matchaction';
 import Layout from "../../layouts/layout";
-import { Spinner, Form, Button } from 'react-bootstrap';
+import { Spinner, Button, Form, Row, Col } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Adddata.css';
+import BetfairMarketTable from '../../../../pages/sections/BetfairMarketTable';
+import socket from '../../../../socket';
 
 const Adddata = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
+  const [runnerOdds, setRunnerOdds] = useState([]);
 
   const { eventId } = location.state || {};
   const { match, loading } = useSelector((state) => state.match || {});
 
-  const [runnerData, setRunnerData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    runner: '',
+    side: '',
+    odd: '',
+    amount: '',
+  });
 
   useEffect(() => {
     if (eventId) {
@@ -27,54 +35,64 @@ const Adddata = () => {
     }
   }, [dispatch, eventId, navigate]);
 
+  // Fetch Betfair runners (Market Table)
   useEffect(() => {
-    if (match?.matchRunners) {
-      const initialData = match.matchRunners.reduce((acc, runner) => {
-        acc[runner.selectionId] = {
-          odds: { back: '', lay: '' },
-          Ammount: { back: '', lay: '' },
-          Profit: { back: '', lay: '' }
-        };
-        return acc;
-      }, {});
-      setRunnerData(initialData);
-    }
-  }, [match]);
+    const fetchAllRunnersOdds = async () => {
+      try {
+        const result = await dispatch(getBetfairOddsForRunner(eventId));
+        if (result?.payload?.runners) {
+          setRunnerOdds(result.payload.runners);
+        }
+      } catch (err) {
+        setRunnerOdds([]);
+      }
+    };
 
-  const handleInputChange = (e, selectionId, field, type) => {
-    setRunnerData((prevData) => ({
-      ...prevData,
-      [selectionId]: {
-        ...prevData[selectionId],
-        [field]: {
-          ...prevData[selectionId][field],
-          [type]: e.target.value,
-        },
-      },
+    if (eventId) fetchAllRunnersOdds();
+  }, [dispatch, eventId]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
     }));
   };
 
-  const handleSubmitAll = async () => {
+  const handleSubmit = async ({tip}) => {
     setIsSubmitting(true);
     try {
-      for (const selectionId of Object.keys(runnerData)) {
-        const { odds, Ammount, Profit } = runnerData[selectionId];
+      if (tip?.runner) {
         const data = {
           odds: {
-            back: odds?.back ? parseFloat(odds.back) : null,
-            lay: odds?.lay ? parseFloat(odds.lay) : null,
+            back: parseFloat(tip?.side === 'Back' ? tip?.odd : null),
+            lay: parseFloat(tip?.side === 'Lay' ? tip?.odd : null),
           },
           Ammount: {
-            back: Ammount?.back ? parseFloat(Ammount.back) : null,
-            lay: Ammount?.lay ? parseFloat(Ammount.lay) : null,
-          },
-          Profit: {
-            back: Profit?.back ? parseFloat(Profit.back) : null,
-            lay: Profit?.lay ? parseFloat(Profit.lay) : null,
+            back: parseFloat(tip?.side === 'Back' ? tip?.amount : null),
+            lay: parseFloat(tip?.side === 'Lay' ? tip?.amount : null),
           },
         };
-        await dispatch(addAdminBetfairOdds(eventId, selectionId, data));
+        await dispatch(addAdminBetfairOdds(eventId, tip?.runner, data));
+      } else {
+        const data = {
+          odds: {
+            back: parseFloat(formData?.side === 'Back' ? formData?.odd : null),
+            lay: parseFloat(formData?.side === 'Lay' ? formData?.odd : null),
+          },
+          Ammount: {
+            back: parseFloat(formData?.side === 'Back' ? formData?.amount : null),
+            lay: parseFloat(formData?.side === 'Lay' ? formData?.amount : null),
+          },
+        };
+        await dispatch(addAdminBetfairOdds(eventId, formData?.runner, data));
       }
+      setFormData({
+        runner: '',
+        side: '',
+        odd: '',
+        amount: '',
+      })
       await dispatch(getMatchById(eventId));
     } catch (error) {
       console.error("Error submitting all runners:", error);
@@ -91,6 +109,15 @@ const Adddata = () => {
     );
   }
 
+  const handleOddsClick = async (tip) => {
+    handleSubmit({tip: tip});
+  }
+
+  const getRunnerName = (selectionId, fallback, index) => {
+    const matchData = match?.matchRunners?.find(r => r.selectionId === selectionId);
+    return matchData?.runnerName || fallback || `Runner ${index + 1}`;
+  };
+
   return (
     <Layout userRole="admin">
       <Helmet>
@@ -100,38 +127,67 @@ const Adddata = () => {
       <div className="container mt-4">
         <h3 className="mb-3">{match?.eventName}</h3>
 
-        <div className="row">
-          {match?.matchRunners?.map((runner) => (
-            <div key={runner.selectionId} className="col-lg-6 mb-4">
-              <h5>{runner.runnerName}</h5>
-              <Form>
-                {["odds", "Ammount", "Profit"].map((field) => (
-                  <React.Fragment key={field}>
-                    <h6>{field}</h6>
-                    <div className="d-flex">
-                      {["back", "lay"].map((type) => (
-                        <Form.Group className="mb-3 me-3" key={type}>
-                          <Form.Label>{type.charAt(0).toUpperCase() + type.slice(1)}</Form.Label>
-                          <Form.Control
-                            type="number"
-                            placeholder={`${field} ${type}`}
-                            value={runnerData[runner.selectionId]?.[field]?.[type] || ''}
-                            onChange={(e) => handleInputChange(e, runner.selectionId, field, type)}
-                          />
-                        </Form.Group>
-                      ))}
-                    </div>
-                  </React.Fragment>
-                ))}
-              </Form>
-            </div>
-          ))}
+        <div>
+          <BetfairMarketTable
+            matchData={{
+              eventId,
+              market: { runners: runnerOdds },
+              matchRunners: match?.matchRunners || [],
+            }}
+            handleSubmit={handleOddsClick}
+            pnl={match?.netProfit ?? []}
+            socket={socket}
+          />
         </div>
-
-        <div className="text-center mb-4">
-          <Button variant="primary" onClick={handleSubmitAll} disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit All Runners'}
-          </Button>
+        <div className='mt-4'>
+          <Form onSubmit={handleSubmit}>
+            <Row className="mb-3">
+              <Col>
+                <Form.Group controlId="runner">
+                  <Form.Label>Runner</Form.Label>
+                  <Form.Select name="runner" value={formData.runner} onChange={handleChange}>
+                    <option value="">Select an option</option>
+                    {match?.matchRunners?.map((runner) => (<option key={runner.selectionId} value={runner.selectionId}>{getRunnerName(runner.selectionId)}</option>))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group controlId="side">
+                  <Form.Label>Side</Form.Label>
+                  <Form.Select name="side" value={formData.side} onChange={handleChange}>
+                    <option value="">Select an option</option>
+                    <option value="Back">Back</option>
+                    <option value="Lay">Lay</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group controlId="odd">
+                  <Form.Label>Odd</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="odd"
+                    value={formData.odd}
+                    onChange={handleChange}
+                    placeholder="Enter Odd"
+                  />
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group controlId="amount">
+                  <Form.Label>Amount</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    placeholder="Enter Amount"
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Button className='w-32' variant="primary" type="submit">{isSubmitting ? 'Submitting....' : 'Submit'}</Button>
+          </Form>
         </div>
 
         <div className="latest-odds mt-4">
@@ -140,24 +196,18 @@ const Adddata = () => {
             <thead>
               <tr>
                 <th>Runner</th>
-                <th>Odds Back</th>
-                <th>Odds Lay</th>
-                <th>Amount Back</th>
-                <th>Amount Lay</th>
-                <th>Profit Back</th>
-                <th>Profit Lay</th>
+                <th>Side</th>
+                <th>Odd</th>
+                <th>Amount</th>
               </tr>
             </thead>
             <tbody>
               {match?.adminBetfairOdds?.map((runnerOdds) => (
                 <tr key={runnerOdds.selectionId}>
                   <td>{runnerOdds.runnerName}</td>
-                  <td>{runnerOdds.odds?.back}</td>
-                  <td>{runnerOdds.odds?.lay}</td>
-                  <td>{runnerOdds.Ammount?.back || 'N/A'}</td>
-                  <td>{runnerOdds.Ammount?.lay || 'N/A'}</td>
-                  <td>{runnerOdds.Profit?.back || 'N/A'}</td>
-                  <td>{runnerOdds.Profit?.lay || 'N/A'}</td>
+                  <td>{runnerOdds.odds?.back ? 'Back' : runnerOdds.odds?.lay ? 'Lay' : 'N/A'}</td>
+                  <td>{runnerOdds.odds?.back ?? runnerOdds.odds?.lay ?? 'N/A'}</td>
+                  <td>{runnerOdds.Ammount?.back ?? runnerOdds.Ammount?.lay ?? 'N/A'}</td>
                 </tr>
               ))}
             </tbody>
@@ -170,12 +220,9 @@ const Adddata = () => {
             <thead>
               <tr>
                 <th>Runner</th>
-                <th>Odds Back</th>
-                <th>Odds Lay</th>
-                <th>Amount Back</th>
-                <th>Amount Lay</th>
-                <th>Profit Back</th>
-                <th>Profit Lay</th>
+                <th>Side</th>
+                <th>Odd</th>
+                <th>Amount</th>
                 <th>Time</th>
               </tr>
             </thead>
@@ -184,12 +231,9 @@ const Adddata = () => {
                 runnerOdds.layingHistory?.map((history, index) => (
                   <tr key={index}>
                     <td>{runnerOdds.runnerName}</td>
-                    <td>{history.odds?.back}</td>
-                    <td>{history.odds?.lay}</td>
-                    <td>{history.Ammount?.back || 'N/A'}</td>
-                    <td>{history.Ammount?.lay || 'N/A'}</td>
-                    <td>{history.Profit?.back || 'N/A'}</td>
-                    <td>{history.Profit?.lay || 'N/A'}</td>
+                    <td>{history?.odds?.back ? 'Back' : history?.odds?.lay ? 'Lay' : 'N/A'}</td>
+                    <td>{history?.odds?.back ?? history?.odds?.lay ?? 'N/A'}</td>
+                    <td>{history?.Ammount?.back ?? history?.Ammount?.lay ?? 'N/A'}</td>
                     <td>{new Date(history.timestamp).toLocaleString()}</td>
                   </tr>
                 ))
