@@ -67,7 +67,7 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
   }
  
   const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
-  const { amount } = await axios.post(
+  const { data } = await axios.post(
     apiUrl, 
     {
       investmentLimit: investmentLimit,
@@ -80,7 +80,7 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
       }
     }
   );
-  return amount;
+  return data?.amount;
 }
 
 // Store individual runner data with timestamp
@@ -370,7 +370,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
             adminBetfairOdds: match.adminBetfairOdds,
             betfairOdds: match.betfairOdds,
             scoreData: match.scoreData,
-            netProfit: netProfit({runnerOdds: match.adminBetfairOdds, runners: match.matchRunners}),
+            netProfit: netProfit({runnerOdds: match.adminBetfairOdds, runners: match.matchRunners}) ?? [],
         };
 
         // ✅ Store match in temp memory
@@ -449,19 +449,19 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       selectionId: runner.selectionId,
       runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
       lastPriceTraded: runner.lastPriceTraded || 0,
-      availableToBack: runner.ex?.availableToBack || [],
-      availableToLay: runner.ex?.availableToLay || [],
-      oddsHistory: [{
-        availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
+      availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
             price: back.price,
             size: back.size,
             amount: index === 0 ? getAmount({side: "Back", odd: back.price}): 0,
         })) || [],
-        availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
+      availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
             price: lay.price,
             size: lay.size,
             amount: index === 0 ? getAmount({side: "Lay", odd: lay.price}): 0,
         })) || [],
+      oddsHistory: [{
+        availableToBack: runner.ex?.availableToBack || [],
+        availableToLay: runner.ex?.availableToLay || [],
         timestamp: new Date()
       }]
     }));
