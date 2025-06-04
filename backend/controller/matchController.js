@@ -45,7 +45,7 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
       }
     }
   );
-  console.log(response);
+  
   return response?.data?.amount;
 }
 
@@ -447,8 +447,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       availableToBack: runner.ex?.availableToBack?.map((back, index) => {
         let amount;
         const getamount = async () => {
-          const { amount } = await getAmount({side: "Back", odd: back.price});
-          amount = amount;
+          amount = await getAmount({side: "Back", odd: back.price});
         }
         getamount();
         return {
@@ -460,8 +459,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       availableToLay: runner.ex?.availableToLay?.map((lay, index) => {
         let amount;
         const getamount = async () => {
-          const { amount } = await getAmount({side: "Lay", odd: lay.price});
-          amount = amount;
+          amount = await getAmount({side: "Lay", odd: lay.price});
         }
         getamount();
         return {
