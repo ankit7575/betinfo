@@ -26,31 +26,26 @@ const getMatchFromTempStore = (eventId) => {
   return tempStore[eventId];
 };
 
-const getAmount = ({side, odd, investmentLimit = 0}) => {
+const getAmount = async ({side, odd, investmentLimit = 0}) => {
   if (!side || !odd) {
     return 0
   }
   try { 
-    let amount = 0;
-    const getamount = async () => {
-      const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
-      const response = await axios.post(
-        apiUrl, 
-        {
-          investmentLimit: investmentLimit,
-          side: side,
-          odd: odd,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
-          }
+    const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
+    const response = await axios.post(
+      apiUrl, 
+      {
+        investmentLimit: investmentLimit,
+        side: side,
+        odd: odd,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
         }
-      );
-      amount = response?.data?.amount;
-    }
-    getamount();
-    return amount;
+      }
+    );
+    return response?.data?.amount || 0;
   } catch (e) {
     return 0;
   }
@@ -329,7 +324,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
         match.matchRunners.map(runner => {
           selection_ids.push(parseInt(runner.runnerId));
         });
-        match.adminBetfairOdds.map((runnerOdd) =>
+        match.adminBetfairOdds?.map((runnerOdd) =>
           runnerOdd.layingHistory?.map((tipHistory) => {
             history.push({
               selection_id : parseInt(runnerOdd.selectionId),
@@ -447,26 +442,26 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    const runnerData = marketData.runners.map((runner) => ({
+    const runnerData = await Promise.all(marketData.runners.map(async (runner) => ({
       selectionId: runner.selectionId,
       runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
       lastPriceTraded: runner.lastPriceTraded || 0,
-      availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
+      availableToBack: runner.ex?.availableToBack?.map(async (back, index) => ({
         price: back.price,
         size: back.size,
-        amount: index === 0 ? getAmount({side: "Back", odd: back.price}) : 0,
+        amount: index === 0 ? await getAmount({side: "Back", odd: back.price}) : 0,
       })) || [],
-      availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
+      availableToLay: runner.ex?.availableToLay?.map(async (lay, index) => ({
         price: lay.price,
         size: lay.size,
-        amount: index === 0 ? getAmount({side: "Lay", odd: lay.price}) : 0,
+        amount: index === 0 ? await getAmount({side: "Lay", odd: lay.price}) : 0,
       })) || [],
       oddsHistory: [{
         availableToBack: runner.ex?.availableToBack || [],
         availableToLay: runner.ex?.availableToLay || [],
         timestamp: new Date()
       }]
-    }));
+    })));
 
      match.betfairOdds = runnerData;
     if (!isFromCache && typeof match.save === "function") {
