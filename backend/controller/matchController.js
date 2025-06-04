@@ -32,7 +32,7 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
   }
  
   const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
-  const res = await axios.post(
+  const response = await axios.post(
     apiUrl, 
     {
       investmentLimit: investmentLimit,
@@ -45,7 +45,8 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
       }
     }
   );
-  return res;
+  console.log(response);
+  return response?.data?.amount;
 }
 
 // Store individual runner data with timestamp
