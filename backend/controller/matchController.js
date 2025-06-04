@@ -26,27 +26,34 @@ const getMatchFromTempStore = (eventId) => {
   return tempStore[eventId];
 };
 
-const getAmount = async ({side, odd, investmentLimit = 0}) => {
+const getAmount = ({side, odd, investmentLimit = 0}) => {
   if (!side || !odd) {
     return 0
   }
- 
-  const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
-  const response = await axios.post(
-    apiUrl, 
-    {
-      investmentLimit: investmentLimit,
-      side: side,
-      odd: odd,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
-      }
+  try { 
+    let amount = 0;
+    const getamount = async () => {
+      const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
+      const response = await axios.post(
+        apiUrl, 
+        {
+          investmentLimit: investmentLimit,
+          side: side,
+          odd: odd,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
+          }
+        }
+      );
+      amount = response?.data?.amount;
     }
-  );
-  
-  return response?.data?.amount;
+    getamount();
+    return amount;
+  } catch (e) {
+    return 0;
+  }
 }
 
 // Store individual runner data with timestamp
@@ -444,31 +451,16 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       selectionId: runner.selectionId,
       runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
       lastPriceTraded: runner.lastPriceTraded || 0,
-      availableToBack: runner.ex?.availableToBack?.map((back, index) => {
-        let amount;
-        const getamount = async () => {
-          amount = await getAmount({side: "Back", odd: back.price});
-        }
-        getamount();
-        return {
-            price: back.price,
-            size: back.size,
-            amount: index === 0 ? amount : 0,
-        }
-      }) || [],
-      availableToLay: runner.ex?.availableToLay?.map((lay, index) => {
-        let amount = 0;
-        const getamount = async () => {
-          amount = await getAmount({side: "Lay", odd: lay.price});
-          console.log(amount);
-        }
-        getamount();
-        return {
-            price: lay.price,
-            size: lay.size,
-            amount: index === 0 ? amount : 0,
-        }
-      }) || [],
+      availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
+        price: back.price,
+        size: back.size,
+        amount: index === 0 ? getAmount({side: "Back", odd: back.price}) : 0,
+      })) || [],
+      availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
+        price: lay.price,
+        size: lay.size,
+        amount: index === 0 ? getAmount({side: "Lay", odd: lay.price}) : 0,
+      })) || [],
       oddsHistory: [{
         availableToBack: runner.ex?.availableToBack || [],
         availableToLay: runner.ex?.availableToLay || [],
