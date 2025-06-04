@@ -334,13 +334,15 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
             });
           })
         );
+        const input = {
+          selection_ids: selection_ids,
+          history: history,
+        };
+        console.log(input);
         const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
         const { data } = await axios.post(
           apiUrl, 
-          {
-            selection_ids: selection_ids,
-            history: history,
-          },
+          input,
           {
             headers: {
               Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
