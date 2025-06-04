@@ -457,9 +457,10 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
         }
       }) || [],
       availableToLay: runner.ex?.availableToLay?.map((lay, index) => {
-        let amount;
+        let amount = 0;
         const getamount = async () => {
           amount = await getAmount({side: "Lay", odd: lay.price});
+          console.log(amount);
         }
         getamount();
         return {
