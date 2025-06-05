@@ -10,30 +10,49 @@ import AppLayout from '../layout';
 import Footer from '../components/Footer';
 import ScoreboardCard from './sections/ScoreboardCard';
 import OpeningBalance from './sections/OpeningBalance';
-import LiveTipsTable from './sections/LiveTipsTable';
 import IframeBox from './sections/IframeBox';
-import TipHistoryTable from './sections/TipHistoryTable';
 import BalanceDisplay from './sections/BalanceDisplay';
-import BetfairMarketTable from './sections/BetfairMarketTable';
+// import BetfairMarketTable from './sections/BetfairMarketTable'; // <-- REMOVED
+import LiveTipsTable from './sections/LiveTipsTable';
 
 import {
   getMatchById,
   getUserMatchOddsAndInvestment,
   userAddInvestment,
   getScoreboardByEventId,
-  getBetfairOddsForRunner,
+  // getBetfairOddsForRunner, // <-- REMOVED
 } from '../actions/matchaction';
 import { redeemCoinForAllMatches } from '../actions/coinAction';
 import { loadUser } from '../actions/userAction';
 
 const sportId = 4;
 
+// Fallback scoreboard
+const fallbackScoreboard = {
+  title: 'Scoreboard',
+  team1: match?.matchRunners?.[0]?.runnerName || 'Team A',
+  team2: match?.matchRunners?.[1]?.runnerName || 'Team B',
+  score1: '0',
+  score2: '0',
+  wicket1: '0',
+  wicket2: '0',
+  ballsDone1: 0,
+  ballsDone2: 0,
+  target: 0,
+  required: '-',
+  recentBalls: [],
+  status: 'Match has not started yet or no live data available',
+};
+
 const ViewTip = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Local State
+  // Get eventId from URL
+  const query = new URLSearchParams(location.search);
+  const eventId = query.get('eventId');
+
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [iframeError, setIframeError] = useState(false);
   const [investmentAmount, setInvestmentAmount] = useState('');
@@ -44,10 +63,6 @@ const ViewTip = () => {
   const [showCoinModal, setShowCoinModal] = useState(false);
   const [coinMessage, setCoinMessage] = useState('');
   const [redeemingCoin, setRedeemingCoin] = useState(false);
-
-  // Get eventId from URL
-  const query = new URLSearchParams(location.search);
-  const eventId = query.get('eventId');
 
     // Auto-refresh page only once per event
     useEffect(() => {
@@ -67,7 +82,6 @@ const ViewTip = () => {
     match,
   } = useSelector((state) => state.match || {});
   const { user, loading: userLoadingState } = useSelector((state) => state.user || {});
-  const userId = user?._id;
 
   // --- Coin Logic ---
   const [now, setNow] = useState(new Date());
@@ -77,21 +91,14 @@ const ViewTip = () => {
   }, []);
 
   const allCoins = user?.keys?.flatMap((key) => key.coin || []) || [];
-
-  // Find if a coin is redeemed for *this* event and still valid
   const alreadyRedeemedCoin = allCoins.find(
     (coin) =>
       coin.usedForEventId?.toString() === eventId &&
       coin.expiresAt &&
       new Date(coin.expiresAt) > now
   );
-
-  // Coins not yet used for any event
   const unusedCoins = allCoins.filter((coin) => !coin.usedAt);
-
-  // Show 'No Coins' only if NOT already redeemed for this match
   const hasNoCoins = user?.coinAvailable === 0 && !alreadyRedeemedCoin;
-  // Show 'Redeem' only if not already redeemed for this event, and coins are available
   const showRedeemPrompt = user?.coinAvailable > 0 && !alreadyRedeemedCoin;
   const openingBalanceMissing = !userOddsAndInvestment?.openingbalance;
 
@@ -111,7 +118,8 @@ const ViewTip = () => {
     fetchInitialData();
   }, [dispatch, user, fetchInitialData]);
 
-  // Real-time odds updates (socket.io)
+  // Last known good scoreboard
+  const [lastGoodScoreboard, setLastGoodScoreboard] = useState(fallbackScoreboard);
   useEffect(() => {
     if (!userId || !eventId) return;
 
@@ -147,6 +155,12 @@ const ViewTip = () => {
     };
     if (eventId) fetchAllRunnersOdds();
   }, [dispatch, eventId]);
+  
+  useEffect(()=>{
+    if (scoreboard && scoreboard.team1 && scoreboard.team2) {
+      setLastGoodScoreboard(scoreboard);
+    }
+  }, [scoreboard]);
 
   // Investment submit handler
   const handleInvestmentSubmit = async (e) => {
@@ -207,23 +221,6 @@ const ViewTip = () => {
 
   const liveTipsToShow =
     latestOddsHistory.length > 0 ? latestOddsHistory : getFallbackLatestTips();
-
-  // Fallback scoreboard
-  const fallbackScoreboard = {
-    title: 'Scoreboard',
-    team1: match?.matchRunners?.[0]?.runnerName || 'Team A',
-    team2: match?.matchRunners?.[1]?.runnerName || 'Team B',
-    score1: '0',
-    score2: '0',
-    wicket1: '0',
-    wicket2: '0',
-    ballsDone1: 0,
-    ballsDone2: 0,
-    target: 0,
-    required: '-',
-    recentBalls: [],
-    status: 'Match has not started yet or no live data available',
-  };
 
   // Loading Spinner
   if (loading || userLoading || userLoadingState) {
@@ -350,34 +347,18 @@ const ViewTip = () => {
                   socket={socket}
                 />
               </div>
-              {/* Only show LiveTipsTable & TipHistoryTable if coin is redeemed for this event */}
+
               {alreadyRedeemedCoin && (
-                <>
-                  <div className='col-lg-12 col-md-12 col-12' >
-                    <LiveTipsTable
-                      eventId={eventId}
-                      userId={userId}
-                      fallbackData={liveTipsToShow}
-                      socket={socket}
-                    />
-                  </div>
-                  <div className='col-lg-12 col-12 ' >
-                    <TipHistoryTable
-                      adminBetfairOdds={match?.adminBetfairOdds || []}
-                      adminOpeningBalance={match?.openingbalance || 200000}
-                      userOpeningBalance={userOddsAndInvestment?.openingbalance || 0}
-                      userId={userOddsAndInvestment?.userId}
-                      socket={socket}
-                    />
-                  </div>
-                </>
+                <div className='col-lg-12 col-md-12 col-12' >
+                  <LiveTipsTable eventId={eventId} />
+                </div>
               )}
             </div>
           </div>
           {/* Sidebar Column */}
           <div className="col-lg-4 col-md-4 col-sm-4 col-12">
             <ScoreboardCard
-              scoreboard={scoreboard?.team1 ? scoreboard : fallbackScoreboard}
+              scoreboard={lastGoodScoreboard}
               socket={socket}
             />
             <IframeBox
