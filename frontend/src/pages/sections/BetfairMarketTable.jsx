@@ -4,9 +4,7 @@ import './BetfairMarketTable.css';
 
 // Accept socket as a prop!
 const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }) => {
-  if (!handleSubmit) {
-    handleSubmit = () => {};
-  }
+  if (!handleSubmit) handleSubmit = () => {};
   const [searchParams] = useSearchParams();
   const currentEventId = searchParams.get('eventId') ?? matchData?.eventId;
 
@@ -14,6 +12,7 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
   const [socketConnected, setSocketConnected] = useState(socket?.connected || false);
   const [highlightMap, setHighlightMap] = useState({});
 
+  // These are used for looking up team names from selectionId
   const initialRunners = useMemo(() => matchData?.market?.runners || [], [matchData]);
   const matchRunners = useMemo(() => matchData?.matchRunners || [], [matchData]);
 
@@ -30,13 +29,12 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
     socket.on('disconnect', handleDisconnect);
 
     const handleOddsUpdate = (data) => {
-      if (data?.eventId !== currentEventId|| !data?.odds?.runners) return;
-
+      if (data?.eventId !== currentEventId || !data?.odds?.runners) return;
       const updated = data.odds.runners;
       const newHighlights = {};
       setLiveRunners(prev =>
         updated.map((updatedRunner) => {
-          const prevRunner = prev.find(p => p.selectionId === updatedRunner.selectionId) || {};
+          const prevRunner = prev.find(p => String(p.selectionId) === String(updatedRunner.selectionId)) || {};
           const newBack = updatedRunner.availableToBack?.[0]?.price;
           const newLay = updatedRunner.availableToLay?.[0]?.price;
           const oldBack = prevRunner.availableToBack?.[0]?.price;
@@ -48,7 +46,6 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
           return { ...prevRunner, ...updatedRunner };
         })
       );
-
       setHighlightMap(newHighlights);
       setTimeout(() => setHighlightMap({}), 500);
     };
@@ -69,9 +66,14 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
     };
   }, [currentEventId, socketConnected, socket]);
 
+  // Helper: Get the correct team name for a selectionId
   const getRunnerName = (selectionId, fallback, index) => {
-    const match = matchRunners.find(r => String(r.selectionId) === String(selectionId));
-    return match?.runnerName || fallback || `Runner ${index + 1}`;
+    // Prefer matchRunners.runnerId or .selectionId (string compare)
+    const found = matchRunners.find(
+      r =>
+        String(r.selectionId ?? r.runnerId) === String(selectionId)
+    );
+    return found?.runnerName || fallback || `Runner ${index + 1}`;
   };
 
   const renderCurrentProfit = (net) => {
@@ -92,10 +94,13 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
     );
   };
 
+  // Render each row in the market table
   const renderRow = (runner, index) => {
     const runnerName = getRunnerName(runner.selectionId, runner.runnerName, index);
-    const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0 };
-    const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0 };
+
+    // Support Betfair "size" or "amount" for back/lay stakes
+    const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0, amount: 0 };
+    const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0, amount: 0 };
     const isBackHighlight = highlightMap[`${runner.selectionId}-back`];
     const isLayHighlight = highlightMap[`${runner.selectionId}-lay`];
     const netProfit = pnl?.find((net) => Number(net?.selection_id) === Number(runner.selectionId))
@@ -122,6 +127,14 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
           {renderCurrentProfit(layItem?.net)}
           <div className="pending-odds">{layItem.price}</div>
           <div className="pending-stake">{layItem.amount}</div>
+        </td>
+        <td className="gap-2 text-center">
+          <span className={`text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white'}`}>
+            {netProfit?.net || 0} {netProfit?.net > 0 ? '▲' : netProfit?.net < 0 ? '▼' : ''}
+          </span>
+          <span className={`ml-2 text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white'}`}>
+            {netProfit?.percentage}
+          </span>
         </td>
         <td className={`gap-2 text-center`}>
             <span className={`text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white' }`}>{ netProfit?.net || 0 } {netProfit?.net > 0 ? '▲' : netProfit?.net < 0 ? '▼' : '' }</span>

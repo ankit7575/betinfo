@@ -34,7 +34,15 @@
   max-height: 215px;
   overflow-y: auto;
 }
-
+.latest-odds h4 {
+  color: white;
+}
+.form-label{
+  color: white;
+}
+.history-odds h4{
+  color: white;
+}
 .live-tips-table {
   margin: 0;
   border-collapse: collapse;
@@ -81,3 +89,4 @@
   50% { border-color: #ff0; box-shadow: 0 0 4px #ff02; }
   100% { border-color: #0ff; box-shadow: 0 0 2px #0ff2; }
 }
+

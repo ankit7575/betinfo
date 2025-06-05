@@ -41,7 +41,7 @@ router.get('/match/:eventId', isAuthenticatedUser, getMatchById);
 
 // ✅ Get odds for a specific runner
 // Endpoint: GET /api/v1/match/:eventId/runner/:selectionId/odds
-router.get("/betfair-odds/:eventId",  isAuthenticatedUser, getBetfairOddsForRunner);
+router.get("/betfair-odds/:eventId",  getBetfairOddsForRunner);
 
 // ✅ Get scoreboard by eventId
 // Endpoint: GET /api/v1/match/scoreboard/:eventId

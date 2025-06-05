@@ -1,164 +1,231 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { Table } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Spinner, Button, Form, Row, Col } from 'react-bootstrap';
+import { getMatchById, addAdminBetfairOdds, getBetfairOddsForRunner } from '../../actions/matchaction';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import BetfairMarketTable from './BetfairMarketTable';
+import socket from '../../socket';
 import './LiveTipsTable.css';
 
-// Helper to find tip in fallback by selectionId or runnerName
-const findTipInFallback = (tip, fallbackData) =>
-  fallbackData.find(f =>
-    f.runnerName === tip.runnerName &&
-    f.selectionId === tip.selectionId
+// Helper: Returns the correct team/runner name for a selectionId
+function getTeamNameBySelectionId(selectionId, matchRunners, fallback, index) {
+  const found = matchRunners?.find(
+    r =>
+      String(r.selectionId ?? r.runnerId) === String(selectionId)
   );
+  return found?.runnerName || fallback || `Runner ${index + 1}`;
+}
 
-const LiveTipsTable = ({ fallbackData = [], error = null, socket, eventId, userId }) => {
-  const [liveTips, setLiveTips] = useState([]);
-  const [isSocketLive, setIsSocketLive] = useState(false);
+const LiveTipsTable = ({ eventId }) => {
+  const dispatch = useDispatch();
+  const { match, loading } = useSelector((state) => state.match || {});
+  const [runnerOdds, setRunnerOdds] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ runner: '', side: '', odd: '', amount: '' });
 
   useEffect(() => {
-    if (!isSocketLive && fallbackData && fallbackData.length > 0) {
-      setLiveTips(
-        fallbackData.map(tip => {
-          const { expiresAt, ...rest } = tip;
-          return { ...rest, _receivedAt: Date.now() };
-        })
-      );
+    if (eventId) dispatch(getMatchById(eventId));
+  }, [dispatch, eventId]);
+  useEffect(() => {
+    if (eventId) {
+      dispatch(getBetfairOddsForRunner(eventId)).then((result) => {
+        if (result?.payload?.runners) setRunnerOdds(result.payload.runners);
+        else setRunnerOdds([]);
+      });
     }
-  }, [fallbackData, isSocketLive]);
+  }, [dispatch, eventId]);
 
-  useEffect(() => {
-    if (!socket || !eventId || !userId) return;
-    const handleTipUpdate = (data) => {
-      if (data?.eventId !== eventId || !Array.isArray(data.tips)) return;
-      setIsSocketLive(true);
-      setLiveTips(
-        data.tips.map(tip => {
-          const { expiresAt, ...rest } = tip;
-          return { ...rest, _receivedAt: Date.now() };
-        })
-      );
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    socket.on('userTipsUpdate', handleTipUpdate);
-    socket.emit('requestUserTipsUpdate', { eventId, userId });
-
-    return () => {
-      socket.off('userTipsUpdate', handleTipUpdate);
-    };
-  }, [socket, eventId, userId]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      setLiveTips(tips =>
-        tips.filter(tip => {
-          const original = findTipInFallback(tip, fallbackData) || {};
-          if (original.expiresAt) {
-            return new Date(original.expiresAt) > now;
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      if (formData?.runner && formData?.side && formData?.odd && formData?.amount) {
+        const data = {
+          odds: {
+            back: formData.side === 'Back' ? parseFloat(formData.odd) : null,
+            lay: formData.side === 'Lay' ? parseFloat(formData.odd) : null,
+          },
+          Ammount: {
+            back: formData.side === 'Back' ? parseFloat(formData.amount) : null,
+            lay: formData.side === 'Lay' ? parseFloat(formData.amount) : null,
           }
-          return now - (tip._receivedAt || 0) < 180000;
-        })
-      );
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [fallbackData]);
+        };
+        await dispatch(addAdminBetfairOdds(eventId, formData.runner, data));
+        setFormData({ runner: '', side: '', odd: '', amount: '' });
+        await dispatch(getMatchById(eventId));
+      }
+    } catch (error) {
+      console.error("Error submitting:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-  const visibleColumns = useMemo(() => {
-    const hasValue = getter =>
-      liveTips.some(item => getter(item) !== 0);
-    return {
-      backOdds: hasValue(item => item.odds?.back ?? 0),
-      backAmount: hasValue(item => item.Ammount?.back ?? 0),
-      backProfit: hasValue(item => item.Profit?.back ?? 0),
-      layOdds: hasValue(item => item.odds?.lay ?? 0),
-      layAmount: hasValue(item => item.Ammount?.lay ?? 0),
-      layProfit: hasValue(item => item.Profit?.lay ?? 0),
-    };
-  }, [liveTips]);
+  // For one-click odds from BetfairMarketTable
+  const handleOddsClick = async (tip) => {
+    setIsSubmitting(true);
+    try {
+      const data = {
+        odds: {
+          back: tip?.side === 'Back' ? parseFloat(tip?.odd) : null,
+          lay: tip?.side === 'Lay' ? parseFloat(tip?.odd) : null,
+        },
+        Ammount: {
+          back: tip?.side === 'Back' ? parseFloat(tip?.amount) : null,
+          lay: tip?.side === 'Lay' ? parseFloat(tip?.amount) : null,
+        }
+      };
+      await dispatch(addAdminBetfairOdds(eventId, tip?.runner, data));
+      await dispatch(getMatchById(eventId));
+    } catch (error) {
+      console.error("Error submitting from table:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-  const filteredTips = useMemo(
-    () =>
-      liveTips.filter(item =>
-        (item.odds?.back && item.odds?.back !== 0) ||
-        (item.odds?.lay && item.odds?.lay !== 0) ||
-        (item.Ammount?.back && item.Ammount?.back !== 0) ||
-        (item.Ammount?.lay && item.Ammount?.lay !== 0) ||
-        (item.Profit?.back && item.Profit?.back !== 0) ||
-        (item.Profit?.lay && item.Profit?.lay !== 0)
-      ),
-    [liveTips]
-  );
+  // Use matchRunners for all lookups
+  const matchRunners = match?.matchRunners || [];
 
-  const display = val => (val === 0 ? '' : val?.toFixed(2));
-  const renderError = () => (
-    <tr>
-      <td colSpan="7" className="text-center text-danger">{error}</td>
-    </tr>
-  );
+  if (loading) {
+    return (
+      <div className="text-center my-4">
+        <Spinner animation="border" variant="primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className='live-tips-table-wrap'>
-      <div className="live-tips-header-row">
-        <span>Live Betting Tips</span>
-        {isSocketLive && <span className="live-dot" />}
-      </div>
-      <div className="live-tips-scroll">
-        <Table bordered responsive className="live-tips-table">
+    <div className="live-tips-table-wrap container mt-4">
+      <h4 className="live-tips-header-row">
+        Live Tips - {match?.eventName}
+      </h4>
+
+      {/* Betfair Market Table with odds click handler */}
+      <BetfairMarketTable
+        matchData={{
+          eventId,
+          market: { runners: runnerOdds },
+          matchRunners,
+        }}
+        handleSubmit={handleOddsClick}
+        pnl={match?.netProfit ?? []}
+        socket={socket}
+      />
+
+      {/* Tips Submission Form */}
+      <Form className='mt-4' onSubmit={handleSubmit}>
+        <Row className="mb-3">
+          <Col>
+            <Form.Group controlId="runner">
+              <Form.Label>Team</Form.Label>
+              <Form.Select name="runner" value={formData.runner} onChange={handleChange}>
+                <option value="">Select a team</option>
+                {matchRunners.map((runner, idx) => (
+                  <option key={runner.selectionId ?? runner.runnerId} value={runner.selectionId ?? runner.runnerId}>
+                    {getTeamNameBySelectionId(runner.selectionId ?? runner.runnerId, matchRunners, runner.runnerName, idx)}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col>
+            <Form.Group controlId="side">
+              <Form.Label>Side</Form.Label>
+              <Form.Select name="side" value={formData.side} onChange={handleChange}>
+                <option value="">Select an option</option>
+                <option value="Back">Back</option>
+                <option value="Lay">Lay</option>
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col>
+            <Form.Group controlId="odd">
+              <Form.Label>Odd</Form.Label>
+              <Form.Control
+                type="number"
+                name="odd"
+                value={formData.odd}
+                onChange={handleChange}
+                placeholder="Enter Odd"
+              />
+            </Form.Group>
+          </Col>
+          <Col>
+            <Form.Group controlId="amount">
+              <Form.Label>Amount</Form.Label>
+              <Form.Control
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                placeholder="Enter Amount"
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+        <Button className='w-32' variant="primary" type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
+      </Form>
+
+      {/* Latest Tips Table */}
+      <div className="latest-odds mt-4 live-tips-scroll">
+        <h4>Latest Tips</h4>
+        <table className="table table-bordered table-striped live-tips-table">
           <thead>
             <tr>
               <th>Team</th>
-              {visibleColumns.backOdds && <th>Back Odds</th>}
-              {visibleColumns.backAmount && <th>Back Amount</th>}
-              {visibleColumns.backProfit && <th>Back Profit</th>}
-              {visibleColumns.layOdds && <th>Lay Odds</th>}
-              {visibleColumns.layAmount && <th>Lay Amount</th>}
-              {visibleColumns.layProfit && <th>Lay Profit</th>}
+              <th>Side</th>
+              <th>Odd</th>
+              <th>Amount</th>
             </tr>
           </thead>
           <tbody>
-            {filteredTips.length === 0 ? (
-              <tr>
-                <td colSpan="7" className="text-center blackcolor">Wait for New Tip</td>
+            {(match?.adminBetfairOdds || []).map((runnerOdds, idx) => (
+              <tr key={runnerOdds.selectionId ?? runnerOdds.runnerId}>
+                <td className="Runner">{getTeamNameBySelectionId(runnerOdds.selectionId ?? runnerOdds.runnerId, matchRunners, runnerOdds.runnerName, idx)}</td>
+                <td>{runnerOdds.odds?.back ? 'Back' : runnerOdds.odds?.lay ? 'Lay' : 'N/A'}</td>
+                <td>{runnerOdds.odds?.back ?? runnerOdds.odds?.lay ?? 'N/A'}</td>
+                <td>{runnerOdds.Ammount?.back ?? runnerOdds.Ammount?.lay ?? 'N/A'}</td>
               </tr>
-            ) : error === 'Access denied: Please redeem a valid coin to view match odds and investment.' ? (
-              renderError()
-            ) : (
-              filteredTips.map((item, idx) => (
-                <tr key={item.selectionId || item.runnerName || idx}>
-                  <td className="Runner">{item.runnerName}</td>
-                  {visibleColumns.backOdds && (
-                    <td className={item.odds?.back ? 'highlight' : ''}>
-                      {display(item.odds?.back ?? 0)}
-                    </td>
-                  )}
-                  {visibleColumns.backAmount && (
-                    <td className={item.Ammount?.back ? 'highlight' : ''}>
-                      {display(item.Ammount?.back ?? 0)}
-                    </td>
-                  )}
-                  {visibleColumns.backProfit && (
-                    <td className={item.Profit?.back ? 'highlight' : ''}>
-                      {display(item.Profit?.back ?? 0)}
-                    </td>
-                  )}
-                  {visibleColumns.layOdds && (
-                    <td className={item.odds?.lay ? 'highlight' : ''}>
-                      {display(item.odds?.lay ?? 0)}
-                    </td>
-                  )}
-                  {visibleColumns.layAmount && (
-                    <td className={item.Ammount?.lay ? 'highlight' : ''}>
-                      {display(item.Ammount?.lay ?? 0)}
-                    </td>
-                  )}
-                  {visibleColumns.layProfit && (
-                    <td className={item.Profit?.lay ? 'highlight' : ''}>
-                      {display(item.Profit?.lay ?? 0)}
-                    </td>
-                  )}
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Odds Tips History Table */}
+      <div className="history-odds mt-4 live-tips-scroll">
+        <h4>Odds Tips History</h4>
+        <table className="table table-bordered table-striped live-tips-table">
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Side</th>
+              <th>Odd</th>
+              <th>Amount</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(match?.adminBetfairOdds || []).map((runnerOdds, idx) =>
+              (runnerOdds.layingHistory || []).map((history, hIdx) => (
+                <tr key={hIdx}>
+                  <td className="Runner">{getTeamNameBySelectionId(runnerOdds.selectionId ?? runnerOdds.runnerId, matchRunners, runnerOdds.runnerName, idx)}</td>
+                  <td>{history?.odds?.back ? 'Back' : history?.odds?.lay ? 'Lay' : 'N/A'}</td>
+                  <td>{history?.odds?.back ?? history?.odds?.lay ?? 'N/A'}</td>
+                  <td>{history?.Ammount?.back ?? history?.Ammount?.lay ?? 'N/A'}</td>
+                  <td>{history?.timestamp ? new Date(history.timestamp).toLocaleString() : 'N/A'}</td>
                 </tr>
               ))
             )}
           </tbody>
-        </Table>
+        </table>
       </div>
     </div>
   );
