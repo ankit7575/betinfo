@@ -10,49 +10,70 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { calculateUserOdds } = require('../models/calculateUserOdds');
 
 // ⚙️ In-Memory Match & Runner Cache Store
-const tempStore = {};       // Stores match data by eventId
-const runnerCache = {};     // Stores individual runner data with TTL
-const intervalTimers = {};  // Stores setInterval references for cleanup
+const tempStore = {};
+const runnerCache = {};
+const intervalTimers = {};
 
-// Store full match object
 const setMatchInTempStore = (eventId, matchData) => {
   if (!eventId || !matchData) return;
   tempStore[eventId] = matchData;
 };
 
-// Retrieve full match object
-const getMatchFromTempStore = (eventId) => {
-  if (!eventId) return null;
-  return tempStore[eventId];
-};
+const getAmount = async ({side, odd, investmentLimit = 0}) => {
 
-// Store individual runner data with timestamp
-const setRunnerInTempStore = (eventId, selectionId, runnerData) => {
-  if (!eventId || !selectionId || !runnerData) return;
-  const key = `${eventId}-${selectionId}`;
-  runnerCache[key] = {
-    data: runnerData,
-    timestamp: Date.now()
-  };
-};
+  if (!side || !odd) {
 
-// Retrieve runner data if within 1 second freshness window
-const getRunnerFromTempStore = (eventId, selectionId) => {
-  const key = `${eventId}-${selectionId}`;
-  const entry = runnerCache[key];
-  if (!entry) return null;
+    return 0
 
-  const isFresh = (Date.now() - entry.timestamp) < 1000; // 1 second TTL
-  return isFresh ? entry.data : null;
-};
+  }
 
-// Optional: Clear interval or cache per eventId if needed
+  try { 
+
+    const apiUrl = `${process.env.PLAYMATE_URL}getAmount`;
+
+    const response = await axios.post(
+
+      apiUrl, 
+
+      {
+
+        investmentLimit: parseInt(investmentLimit),
+
+        side: side,
+
+        odd: parseFloat(odd),
+
+      },
+
+      {
+
+        headers: {
+
+          Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
+
+        }
+
+      }
+
+    );
+
+    return response?.data?.amount || 0;
+
+  } catch (e) {
+
+    return 0;
+
+  }
+
+}
+
+const getMatchFromTempStore = (eventId) => tempStore[eventId] || null;
+
 const clearMatchCache = (eventId) => {
   delete tempStore[eventId];
   Object.keys(runnerCache).forEach(key => {
     if (key.startsWith(`${eventId}-`)) delete runnerCache[key];
   });
-
   if (intervalTimers[eventId]) {
     clearInterval(intervalTimers[eventId]);
     delete intervalTimers[eventId];
@@ -125,7 +146,7 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
         return res.status(500).json({ success: false, message: 'Unexpected API response.', data: matches });
     }
 
-    // Accept at least 2 runners for all sports
+    // Step 1: Accept at least 2 runners for all sports, has markets
     const filteredMatches = matches.filter(match =>
         Array.isArray(match.matchRunners) &&
         match.matchRunners.length >= 2 &&
@@ -133,10 +154,41 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
         match.markets.length > 0
     );
 
+    // Step 2: Only keep matches where "Match Odds" market has at least one runner with available odds
+    const matchesWithOdds = await Promise.all(
+        filteredMatches.map(async (match) => {
+            const matchOddsMarket = match.markets.find(m => m.marketName === "Match Odds");
+            if (!matchOddsMarket?.marketId) return null;
+
+            const marketId = matchOddsMarket.marketId;
+            const betfairUrl = `https://api.trovetown.co/v1/apiCalls/betfairData?marketIds=${marketId}`;
+
+            try {
+                const betfairRes = await axios.get(betfairUrl, { timeout: 5000 });
+                const marketData = Array.isArray(betfairRes.data) ? betfairRes.data.find(m => m.marketId === marketId) : null;
+                if (marketData && Array.isArray(marketData.runners) && marketData.runners.length > 0) {
+                    const hasAnyOdds = marketData.runners.some(r =>
+                        (r.ex?.availableToBack && r.ex.availableToBack.length > 0) ||
+                        (r.ex?.availableToLay && r.ex.availableToLay.length > 0)
+                    );
+                    if (hasAnyOdds) return match;
+                }
+            } catch (e) {
+                // Odds API failed, skip this match
+                return null;
+            }
+            return null;
+        })
+    );
+
+    // Remove nulls (matches without valid odds)
+    const validMatches = matchesWithOdds.filter(Boolean);
+
+    // Step 3: Save and return matches with odds
     const allMatches = [];
     let newMatchCount = 0;
 
-    for (const match of filteredMatches) {
+    for (const match of validMatches) {
         let matchDoc = await Match.findOne({ eventId: match.eventId });
         if (!matchDoc) {
             matchDoc = new Match({
@@ -154,7 +206,7 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
                 })),
                 openDate: match.openDate,
                 selected: true,      // Admin can mark true later
-                adminStatus: "",      // Admin can set custom status later
+                adminStatus: "",     // Admin can set custom status later
             });
 
             await matchDoc.save();
@@ -163,26 +215,43 @@ const getMatches = catchAsyncErrors(async (req, res, next) => {
         allMatches.push(matchDoc);
     }
 
-    // Return all matches (with selected/adminStatus fields), for admin listing/updating
+    // Step 4: Remove from DB any old matches that are no longer valid for this sportId
+    // (Not in the new validMatches list)
+    const validEventIds = validMatches.map(m => m.eventId);
+    // Only remove if you have at least one valid match (to avoid wiping in case of API fail)
+    if (validEventIds.length > 0) {
+        await Match.deleteMany({
+            sportName: allMatches[0]?.sportName || "Unknown", // or use sportId field if you store it
+            eventId: { $nin: validEventIds }
+        });
+    }
+
     return res.status(200).json({
         success: true,
-        message: `${newMatchCount} new matches saved. ${allMatches.length} total matches returned.`,
+        message: `${newMatchCount} new matches saved. ${allMatches.length} total matches returned. Old matches removed.`,
         data: allMatches,
     });
 });
 
+
+
+
 const getTennisMatches = catchAsyncErrors(async (req, res, next) => {
-  // For tennis, sportId is 2.
+  // For tennis, sportId is 2
   const sportId = 2;
 
   const apiUrl = `https://api.trovetown.co/v1/apiCalls?apiType=matchListManish&sportId=${sportId}`;
   const { data: matches } = await axios.get(apiUrl);
 
   if (!Array.isArray(matches)) {
-    return res.status(500).json({ success: false, message: 'Unexpected API response.', data: matches });
+    return res.status(500).json({
+      success: false,
+      message: 'Unexpected API response.',
+      data: matches
+    });
   }
 
-  // Allow at least 2 runners for tennis (singles or doubles)
+  // 1. Structure filter: at least 2 runners, has markets
   const filteredMatches = matches.filter(match =>
     Array.isArray(match.matchRunners) &&
     match.matchRunners.length >= 2 &&
@@ -190,10 +259,43 @@ const getTennisMatches = catchAsyncErrors(async (req, res, next) => {
     match.markets.length > 0
   );
 
+  // 2. Odds-based filtering: keep only if "Match Odds" has at least one runner with odds
+  const matchesWithOdds = await Promise.all(
+    filteredMatches.map(async (match) => {
+      const matchOddsMarket = match.markets.find(m => m.marketName === "Match Odds");
+      if (!matchOddsMarket?.marketId) return null;
+
+      const marketId = matchOddsMarket.marketId;
+      const betfairUrl = `https://api.trovetown.co/v1/apiCalls/betfairData?marketIds=${marketId}`;
+
+      try {
+        const betfairRes = await axios.get(betfairUrl, { timeout: 5000 });
+        const marketData = Array.isArray(betfairRes.data)
+          ? betfairRes.data.find(m => m.marketId === marketId)
+          : null;
+        if (marketData && Array.isArray(marketData.runners) && marketData.runners.length > 0) {
+          const hasAnyOdds = marketData.runners.some(r =>
+            (r.ex?.availableToBack && r.ex.availableToBack.length > 0) ||
+            (r.ex?.availableToLay && r.ex.availableToLay.length > 0)
+          );
+          if (hasAnyOdds) return match;
+        }
+      } catch (e) {
+        // Odds API failed for this match, skip it
+        return null;
+      }
+      return null;
+    })
+  );
+
+  // 3. Only valid matches
+  const validMatches = matchesWithOdds.filter(Boolean);
+
+  // 4. Save valid matches to DB as usual
   const allMatches = [];
   let newMatchCount = 0;
 
-  for (const match of filteredMatches) {
+  for (const match of validMatches) {
     let matchDoc = await Match.findOne({ eventId: match.eventId });
     if (!matchDoc) {
       matchDoc = new Match({
@@ -201,6 +303,7 @@ const getTennisMatches = catchAsyncErrors(async (req, res, next) => {
         eventName: match.eventName || null,
         competitionName: match.competitionName,
         sportName: match.sportName || "Tennis",
+        sportId: sportId, // Ensure you store this if your model allows
         matchRunners: match.matchRunners.map(runner => ({
           runnerId: runner.selectionId,
           runnerName: runner.runnerName,
@@ -210,8 +313,8 @@ const getTennisMatches = catchAsyncErrors(async (req, res, next) => {
           marketName: market.marketName,
         })),
         openDate: match.openDate,
-        selected: true,      // Admin can mark true later
-        adminStatus: "",      // Admin can set custom status later
+        selected: true,
+        adminStatus: "",
       });
       await matchDoc.save();
       newMatchCount++;
@@ -219,12 +322,24 @@ const getTennisMatches = catchAsyncErrors(async (req, res, next) => {
     allMatches.push(matchDoc);
   }
 
+  // 5. Remove from DB any old tennis matches not in the new valid list (only if there are valid matches)
+  const validEventIds = validMatches.map(m => m.eventId);
+  if (validEventIds.length > 0) {
+    await Match.deleteMany({
+      $and: [
+        { sportName: "Tennis" },
+        { eventId: { $nin: validEventIds } }
+      ]
+    });
+  }
+
   return res.status(200).json({
     success: true,
-    message: `${newMatchCount} new matches saved. ${allMatches.length} total matches returned.`,
+    message: `${newMatchCount} new matches saved. ${allMatches.length} total matches returned. Old matches removed.`,
     data: allMatches,
   });
 });
+
 
 
 const getSoccerMatches = catchAsyncErrors(async (req, res, next) => {
@@ -237,26 +352,57 @@ const getSoccerMatches = catchAsyncErrors(async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Unexpected API response.', data: matches });
   }
 
-  // Filter: At least 2 runners in Match Odds market, and at least one market available
+  // Step 1: Accept at least 2 runners, has markets
   const filteredMatches = matches.filter(match =>
     Array.isArray(match.matchRunners) &&
-    match.matchRunners.length >= 2 && // Soccer often has 3: Team1, Team2, Draw
+    match.matchRunners.length >= 2 &&
     Array.isArray(match.markets) &&
     match.markets.length > 0
   );
 
+  // Step 2: Only keep matches where "Match Odds" market has at least one runner with available odds
+  const matchesWithOdds = await Promise.all(
+    filteredMatches.map(async (match) => {
+      const matchOddsMarket = match.markets.find(m => m.marketName === "Match Odds");
+      if (!matchOddsMarket?.marketId) return null;
+
+      const marketId = matchOddsMarket.marketId;
+      const betfairUrl = `https://api.trovetown.co/v1/apiCalls/betfairData?marketIds=${marketId}`;
+
+      try {
+        const betfairRes = await axios.get(betfairUrl, { timeout: 5000 });
+        const marketData = Array.isArray(betfairRes.data) ? betfairRes.data.find(m => m.marketId === marketId) : null;
+        if (marketData && Array.isArray(marketData.runners) && marketData.runners.length > 0) {
+          const hasAnyOdds = marketData.runners.some(r =>
+            (r.ex?.availableToBack && r.ex.availableToBack.length > 0) ||
+            (r.ex?.availableToLay && r.ex.availableToLay.length > 0)
+          );
+          if (hasAnyOdds) return match;
+        }
+      } catch (e) {
+        // Odds API failed, skip this match
+        return null;
+      }
+      return null;
+    })
+  );
+
+  // Remove nulls (matches without valid odds)
+  const validMatches = matchesWithOdds.filter(Boolean);
+
+  // Step 3: Save and return matches with odds
   const allMatches = [];
   let newMatchCount = 0;
 
-  for (const match of filteredMatches) {
+  for (const match of validMatches) {
     let matchDoc = await Match.findOne({ eventId: match.eventId });
     if (!matchDoc) {
       matchDoc = new Match({
         eventId: match.eventId,
         eventName: match.eventName || null,
         competitionName: match.competitionName,
-        sportId: match.sportId,
         sportName: match.sportName || "Soccer",
+        sportId: sportId, // Optional, if you store sportId in your model
         matchRunners: match.matchRunners.map(runner => ({
           runnerId: runner.selectionId,
           runnerName: runner.runnerName,
@@ -266,22 +412,153 @@ const getSoccerMatches = catchAsyncErrors(async (req, res, next) => {
           marketName: market.marketName,
         })),
         openDate: match.openDate,
-        selected: true,   // Admin can mark true later
-        adminStatus: "",   // Admin can set custom status later
+        selected: true,
+        adminStatus: "",
       });
+
       await matchDoc.save();
       newMatchCount++;
     }
     allMatches.push(matchDoc);
   }
 
+  // Step 4: Remove from DB any old matches not in the current valid matches
+  const validEventIds = validMatches.map(m => m.eventId);
+  if (validEventIds.length > 0) {
+    await Match.deleteMany({
+      sportName: allMatches[0]?.sportName || "Soccer", // or use sportId if you store it
+      eventId: { $nin: validEventIds }
+    });
+  }
+
   return res.status(200).json({
     success: true,
-    message: `${newMatchCount} new soccer matches saved. ${allMatches.length} total matches returned.`,
+    message: `${newMatchCount} new soccer matches saved. ${allMatches.length} total matches returned. Old matches removed.`,
     data: allMatches,
   });
 });
 
+
+// Make sure getAmount is defined above this controller!
+
+const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
+  const { eventId } = req.params;
+  const io = req.app.get("io");
+
+  if (!eventId) return next(new ErrorHandler("Event ID is required", 400));
+  console.log("📊 Initial Betfair odds request received for eventId:", eventId);
+
+  // Clear any previous interval to avoid duplicates
+  if (intervalTimers[eventId]?.oddsInterval) {
+    clearInterval(intervalTimers[eventId].oddsInterval);
+  }
+
+  // Fetch & emit loop
+  const fetchAndEmitOdds = async () => {
+    let match = getMatchFromTempStore(eventId);
+    let isFromCache = true;
+
+    if (!match) {
+      match = await Match.findOne({ eventId });
+      if (!match) return;
+      isFromCache = false;
+    }
+
+    const matchOddsMarket = match.markets?.find(m => m.marketName === "Match Odds");
+    if (!matchOddsMarket?.marketId) {
+      console.warn(`⚠️ No marketId found for eventId: ${eventId}`);
+      return;
+    }
+
+    const marketId = matchOddsMarket.marketId;
+    const apiUrl = `https://api.trovetown.co/v1/apiCalls/betfairData?marketIds=${marketId}`;
+
+    let data;
+    try {
+      const response = await axios.get(apiUrl, { timeout: 10000 });
+      data = response.data;
+    } catch (err) {
+      console.error(`❌ Betfair API fetch failed:`, err.response?.data || err.message);
+      return;
+    }
+
+    if (!Array.isArray(data) || data.length === 0) return;
+
+    const marketData = data.find(m => m.marketId === marketId);
+    if (!marketData?.runners) return;
+
+    // Build runner name map (normalize keys to string for safe lookup)
+    const runnerNameMap = {};
+    if (Array.isArray(match.matchRunners)) {
+      match.matchRunners.forEach(runner => {
+        // Sometimes you store as runnerId, sometimes as selectionId, so cover both:
+        const idStr = String(runner.selectionId || runner.runnerId);
+        runnerNameMap[idStr] = runner.runnerName;
+      });
+    }
+
+    // Enrich runners: always set team name
+    const runnerData = await Promise.all(marketData.runners.map(async (runner) => {
+      const selectionIdStr = String(runner.selectionId);
+      const runnerName = runnerNameMap[selectionIdStr] || `Runner ${runner.selectionId}`;
+      const backAmount = await getAmount({ side: "Back", odd: runner?.ex?.availableToBack?.[0]?.price });
+      const layAmount = await getAmount({ side: "Lay", odd: runner?.ex?.availableToLay?.[0]?.price });
+      return {
+        selectionId: runner.selectionId,
+        runnerName, // <-- always team name!
+        lastPriceTraded: runner.lastPriceTraded || 0,
+        availableToBack: (runner.ex?.availableToBack || []).map((back, index) => ({
+          price: back.price,
+          size: back.size,
+          amount: index === 0 ? backAmount : 0,
+        })),
+        availableToLay: (runner.ex?.availableToLay || []).map((lay, index) => ({
+          price: lay.price,
+          size: lay.size,
+          amount: index === 0 ? layAmount : 0,
+        })),
+        oddsHistory: [{
+          availableToBack: runner.ex?.availableToBack || [],
+          availableToLay: runner.ex?.availableToLay || [],
+          timestamp: new Date()
+        }]
+      };
+    }));
+
+    // ATOMIC UPDATE: update Mongo and cache (no .save if not needed)
+    match.betfairOdds = runnerData;
+    if (!isFromCache && typeof match.save === "function") await match.save();
+    setMatchInTempStore(eventId, match);
+
+    if (io) {
+      io.emit("betfair_odds_update", {
+        eventId,
+        odds: {
+          marketId,
+          marketName: "Match Odds",
+          matchName: match.eventName,
+          runners: runnerData,
+        },
+      });
+      // console.log(`📡 Emitted odds for ${eventId}`);
+    }
+    return { ...marketData, runners: runnerData }; // Return with runnerName enriched!
+  };
+
+  // Start the interval for 0.5s refresh
+  intervalTimers[eventId] = intervalTimers[eventId] || {};
+  intervalTimers[eventId].oddsInterval = setInterval(fetchAndEmitOdds, 500);
+
+  // Immediate fetch for first response
+  const initialMarketData = await fetchAndEmitOdds();
+
+  res.status(200).json({
+    success: true,
+    message: `Started 0.5s live Betfair odds streaming for eventId: ${eventId}`,
+    marketId: initialMarketData?.marketId,
+    marketData: initialMarketData || [],
+  });
+});
 
 // ✅ Get Match By ID from MongoDB and store in tempStore
 const getMatchById = catchAsyncErrors(async (req, res, next) => {
@@ -331,170 +608,62 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-// Get Betfair Odds for Runner using tempStore match
-const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
+const getScoreboardByEventId = catchAsyncErrors(async (req, res, next) => {
   const { eventId } = req.params;
   const io = req.app.get("io");
 
-  if (!eventId) return next(new ErrorHandler("Event ID is required", 400));
-  console.log("📊 Initial Betfair odds request received for eventId:", eventId);
-
-  // Clear any previous interval to avoid duplicates
-  if (intervalTimers[eventId]?.oddsInterval) {
-    clearInterval(intervalTimers[eventId].oddsInterval);
+  if (intervalTimers[eventId]?.scoreInterval) {
+    clearInterval(intervalTimers[eventId].scoreInterval);
   }
 
-  // 🔁 Fetch & emit loop
-  const fetchAndEmitOdds = async () => {
+  const fetchAndEmitScore = async () => {
     let match = getMatchFromTempStore(eventId);
-    let isFromCache = true;
-
     if (!match) {
       match = await Match.findOne({ eventId });
       if (!match) return;
-      isFromCache = false;
     }
 
-    const matchOddsMarket = match.markets?.find(m => m.marketName === "Match Odds");
-    if (!matchOddsMarket?.marketId) {
-      console.warn(`⚠️ No marketId found for eventId: ${eventId}`);
-      return;
-    }
+    const apiUrl = `https://api.trovetown.co/v1/apiCalls/scoreData?scoreId=${eventId}`;
+    const { data } = await axios.get(apiUrl, { timeout: 10000 });
 
-    const marketId = matchOddsMarket.marketId;
-    const apiUrl = `https://api.trovetown.co/v1/apiCalls/betfairData?marketIds=${marketId}`;
+    if (!data?.data?.length || data.data.length < 3) return;
 
-     let data;
-    try {
-      const response = await axios.get(apiUrl, { timeout: 10000 });
-      data = response.data;
-    } catch (err) {
-      console.error(`❌ Betfair API fetch failed:`, err.response?.data || err.message);
-      return;
-    }
-
-    if (!Array.isArray(data) || data.length === 0) return;
-
-    const marketData = data.find(m => m.marketId === marketId);
-    if (!marketData?.runners) return;
-
-    const runnerNameMap = {};
-    if (Array.isArray(match.matchRunners)) {
-      match.matchRunners.forEach(runner => {
-        if (runner.selectionId) {
-          runnerNameMap[runner.selectionId.toString()] = runner.runnerName;
-        }
-      });
-    }
-
-    const runnerData = marketData.runners.map((runner) => ({
-      selectionId: runner.selectionId,
-      runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
-      lastPriceTraded: runner.lastPriceTraded || 0,
-      availableToBack: runner.ex?.availableToBack || [],
-      availableToLay: runner.ex?.availableToLay || [],
-      oddsHistory: [{
-        availableToBack: runner.ex?.availableToBack || [],
-        availableToLay: runner.ex?.availableToLay || [],
-        timestamp: new Date()
-      }]
-    }));
-
-     match.betfairOdds = runnerData;
-    if (!isFromCache && typeof match.save === "function") {
-      await match.save();
-    }
-    setMatchInTempStore(eventId, match);
-
-    if (io) {
-      io.emit("betfair_odds_update", {
-        eventId,
-        odds: {
-          marketId,
-          marketName: "Match Odds",
-          matchName: match.eventName,
-          runners: runnerData,
-        },
-      });
-      console.log(`📡 Emitted odds for ${eventId}`);
-    }
-
-    return marketData; // return for immediate response
-  };
-
-  // Start 0.5s interval
-  intervalTimers[eventId] = intervalTimers[eventId] || {};
-  intervalTimers[eventId].oddsInterval = setInterval(fetchAndEmitOdds, 500);
-
-  // Also fetch immediately and send result
-  const initialMarketData = await fetchAndEmitOdds();
-
-  res.status(200).json({
-    success: true,
-    message: `Started 0.5s live Betfair odds streaming for eventId: ${eventId}`,
-    marketId: initialMarketData?.marketId,
-    marketData: initialMarketData || [],
-  });
-});
-
-const getScoreboardByEventId = catchAsyncErrors(async (req, res, next) => {
-    const { eventId } = req.params;
-    const io = req.app.get("io");
-
-    if (intervalTimers[eventId]?.scoreInterval) {
-      clearInterval(intervalTimers[eventId].scoreInterval);
-    }
-
-    const fetchAndEmitScore = async () => {
-      let match = getMatchFromTempStore(eventId);
-      let isFromCache = true;
-
-      if (!match) {
-        match = await Match.findOne({ eventId });
-        if (!match) return;
-        isFromCache = false;
-      }
-
-      const apiUrl = `https://api.trovetown.co/v1/apiCalls/scoreData?scoreId=${eventId}`;
-      const { data } = await axios.get(apiUrl, { timeout: 10000 });
-
-      if (!data?.data?.length || data.data.length < 3) return;
-
-      const [d0 = {}, d1 = {}, d2 = {}] = data.data;
-      const scoreboard = {
-        team1: d2.t1 || d2.team1 || '',
-        team2: d2.t2 || d2.team2 || '',
-        score1: d2.score?.trim() || '',
-        score2: d2.score2?.trim() || '',
-        wicket1: d2.wicket || '',
-        wicket2: d2.wicket2 || '',
-        ballsDone1: d2.ballsdone || 0,
-        ballsDone2: d2.ballsdone2 || 0,
-        target: d2.target || 0,
-        required: d0.cb || '',
-        recentBalls: Array.isArray(d0.recentBalls) ? d0.recentBalls : [],
-        currentBatters: {
-          player1: d1.p1 || '',
-          player2: d1.p2 || ''
-        },
-        lb: d0.lb || '',
-        status: d1.st || '',
-      };
-
-      match.scoreData = scoreboard;
-      if (!isFromCache && typeof match.save === "function") await match.save();
-      setMatchInTempStore(eventId, match);
-
-      io.emit("scoreboard_update", { eventId, scoreboard });
+    const [d0 = {}, d1 = {}, d2 = {}] = data.data;
+    const scoreboard = {
+      team1: d2.t1 || d2.team1 || '',
+      team2: d2.t2 || d2.team2 || '',
+      score1: d2.score?.trim() || '',
+      score2: d2.score2?.trim() || '',
+      wicket1: d2.wicket || '',
+      wicket2: d2.wicket2 || '',
+      ballsDone1: d2.ballsdone || 0,
+      ballsDone2: d2.ballsdone2 || 0,
+      target: d2.target || 0,
+      required: d0.cb || '',
+      recentBalls: Array.isArray(d0.recentBalls) ? d0.recentBalls : [],
+      currentBatters: {
+        player1: d1.p1 || '',
+        player2: d1.p2 || ''
+      },
+      lb: d0.lb || '',
+      status: d1.st || '',
     };
 
-    intervalTimers[eventId] = intervalTimers[eventId] || {};
-    intervalTimers[eventId].scoreInterval = setInterval(fetchAndEmitScore, 500);
+    // **ATOMIC, NO .save()**
+    await Match.updateOne(
+      { eventId },
+      { $set: { scoreData: scoreboard } }
+    );
+    setMatchInTempStore(eventId, { ...match, scoreData: scoreboard });
+    io.emit("scoreboard_update", { eventId, scoreboard });
+  };
 
-    await fetchAndEmitScore(); // initial fetch
-    res.status(200).json({ success: true, message: "Started real-time scoreboard for eventId: " + eventId });
-  });
- 
+  intervalTimers[eventId] = intervalTimers[eventId] || {};
+  intervalTimers[eventId].scoreInterval = setInterval(fetchAndEmitScore, 500);
+
+  await fetchAndEmitScore(); // initial fetch
+  res.status(200).json({ success: true, message: "Started real-time scoreboard for eventId: " + eventId });
+});
 
 // Helper: Remove backend-only fields like expiresAt
 function sanitizeOdds(oddsArr) {

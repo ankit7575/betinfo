@@ -3,14 +3,16 @@ import { useSearchParams } from 'react-router-dom';
 import './BetfairMarketTable.css';
 
 // Accept socket as a prop!
-const BetfairMarketTable = ({ matchData, socket }) => {
+const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }) => {
+  if (!handleSubmit) handleSubmit = () => {};
   const [searchParams] = useSearchParams();
-  const currentEventId = searchParams.get('eventId');
+  const currentEventId = searchParams.get('eventId') ?? matchData?.eventId;
 
   const [liveRunners, setLiveRunners] = useState([]);
   const [socketConnected, setSocketConnected] = useState(socket?.connected || false);
   const [highlightMap, setHighlightMap] = useState({});
 
+  // These are used for looking up team names from selectionId
   const initialRunners = useMemo(() => matchData?.market?.runners || [], [matchData]);
   const matchRunners = useMemo(() => matchData?.matchRunners || [], [matchData]);
 
@@ -29,13 +31,11 @@ const BetfairMarketTable = ({ matchData, socket }) => {
 
     const handleOddsUpdate = (data) => {
       if (data?.eventId !== currentEventId || !data?.odds?.runners) return;
-
       const updated = data.odds.runners;
       const newHighlights = {};
-
       setLiveRunners(prev =>
         updated.map((updatedRunner) => {
-          const prevRunner = prev.find(p => p.selectionId === updatedRunner.selectionId) || {};
+          const prevRunner = prev.find(p => String(p.selectionId) === String(updatedRunner.selectionId)) || {};
           const newBack = updatedRunner.availableToBack?.[0]?.price;
           const newLay = updatedRunner.availableToLay?.[0]?.price;
           const oldBack = prevRunner.availableToBack?.[0]?.price;
@@ -47,7 +47,6 @@ const BetfairMarketTable = ({ matchData, socket }) => {
           return { ...prevRunner, ...updatedRunner };
         })
       );
-
       setHighlightMap(newHighlights);
       setTimeout(() => setHighlightMap({}), 500);
     };
@@ -68,28 +67,63 @@ const BetfairMarketTable = ({ matchData, socket }) => {
     };
   }, [currentEventId, socketConnected, socket]);
 
+  // Helper: Get the correct team name for a selectionId
   const getRunnerName = (selectionId, fallback, index) => {
-    const match = matchRunners.find(r => String(r.selectionId) === String(selectionId));
-    return match?.runnerName || fallback || `Runner ${index + 1}`;
+    // Prefer matchRunners.runnerId or .selectionId (string compare)
+    const found = matchRunners.find(
+      r =>
+        String(r.selectionId ?? r.runnerId) === String(selectionId)
+    );
+    return found?.runnerName || fallback || `Runner ${index + 1}`;
   };
 
+  // Render each row in the market table
   const renderRow = (runner, index) => {
     const runnerName = getRunnerName(runner.selectionId, runner.runnerName, index);
-    const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0 };
-    const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0 };
+
+    // Support Betfair "size" or "amount" for back/lay stakes
+    const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0, amount: 0 };
+    const layItem = (runner.availableToLay || [])[0] || { price: 0, size: 0, amount: 0 };
     const isBackHighlight = highlightMap[`${runner.selectionId}-back`];
     const isLayHighlight = highlightMap[`${runner.selectionId}-lay`];
+    const netProfit = pnl?.find((net) => Number(net?.selection_id) === Number(runner.selectionId));
 
     return (
       <tr key={runner.selectionId || runnerName}>
         <td className="runner-name-cell">{runnerName}</td>
-        <td className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
+        <td
+          onClick={() => handleSubmit({
+            runner: runner.selectionId,
+            side: 'Back',
+            odd: backItem.price,
+            amount: backItem.amount ?? backItem.size ?? 0,
+          })}
+          className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="pending-odds">{backItem.price}</div>
-          <div className="pending-stake">{backItem.size}</div>
+          <div className="pending-stake">{backItem.amount ?? backItem.size ?? 0}</div>
         </td>
-        <td className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
+        <td
+          onClick={() => handleSubmit({
+            runner: runner.selectionId,
+            side: 'Lay',
+            odd: layItem.price,
+            amount: layItem.amount ?? layItem.size ?? 0,
+          })}
+          className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="pending-odds">{layItem.price}</div>
-          <div className="pending-stake">{layItem.size}</div>
+          <div className="pending-stake">{layItem.amount ?? layItem.size ?? 0}</div>
+        </td>
+        <td className="gap-2 text-center">
+          <span className={`text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white'}`}>
+            {netProfit?.net || 0} {netProfit?.net > 0 ? '▲' : netProfit?.net < 0 ? '▼' : ''}
+          </span>
+          <span className={`ml-2 text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white'}`}>
+            {netProfit?.percentage}
+          </span>
         </td>
       </tr>
     );
@@ -107,12 +141,13 @@ const BetfairMarketTable = ({ matchData, socket }) => {
             <th>Team</th>
             <th>Back</th>
             <th>Lay</th>
+            <th>Profit/Loss</th>
           </tr>
         </thead>
         <tbody>
           {liveRunners.length > 0 ? liveRunners.map(renderRow) : (
             <tr>
-              <td colSpan="3" className="text-center">No runner data.</td>
+              <td colSpan="4" className="text-center">No runner data.</td>
             </tr>
           )}
         </tbody>
