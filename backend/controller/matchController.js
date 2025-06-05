@@ -54,8 +54,6 @@ const getNetProfit = async ({input, tip}) => {
     if (tip) {
       input.history.push(tip);
     }
-    console.log(input);
-    console.log(tip);
     const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
     const { data } = await axios.post(
       apiUrl, 
@@ -467,18 +465,18 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
     const runnerData = await Promise.all(marketData.runners.map(async (runner) => {
       const backAmount = await getAmount({ side: "Back", odd: runner?.ex?.availableToBack[0]?.price });
       const layAmount = await getAmount({ side: "Lay", odd: runner?.ex?.availableToLay[0]?.price });
-      const backNet = await getNetProfit(input, {
+      const backNet = await getNetProfit({input: input, tip: {
         selection_id : parseInt(runner.selectionId),
         side : "Back",
         odd : parseFloat(runner?.ex?.availableToBack[0]?.price),
         amount : parseInt(backAmount),
-      });
-      const layNet = await getNetProfit(input, {
+      }});
+      const layNet = await getNetProfit({input: input, tip: {
         selection_id : parseInt(runner.selectionId),
         side : "Lay",
         odd : parseFloat(runner?.ex?.availableToLay[0]?.price),
         amount : parseInt(layAmount),
-      });
+      }});
       return {
         selectionId: runner.selectionId,
         runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
