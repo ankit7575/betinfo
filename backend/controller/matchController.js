@@ -26,6 +26,46 @@ const getMatchFromTempStore = (eventId) => {
   return tempStore[eventId];
 };
 
+const getNetProfitInput = (match) => {
+  const selection_ids = [];
+  const history = [];
+  match?.matchRunners?.map(runner => {
+    selection_ids.push(parseInt(runner.runnerId));
+  });
+  match?.adminBetfairOdds?.map((runnerOdd) =>
+    runnerOdd.layingHistory?.map((tipHistory) => {
+      history.push({
+        selection_id : parseInt(runnerOdd.selectionId),
+        side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
+        odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
+        amount : parseInt(tipHistory.Ammount?.back ?? tipHistory.Ammount?.lay ?? 0),
+      });
+    })
+  );
+  const input = {
+    selection_ids: selection_ids,
+    history: history,
+  };
+  return input;
+};
+
+const getNetProfit = async ({input, tip}) => {
+  if (tip) {
+    input.history.push(tip);
+  }
+  const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
+  const { data } = await axios.post(
+    apiUrl, 
+    input,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
+      },
+    }
+  );
+  return data;
+};
+
 const getAmount = async ({side, odd, investmentLimit = 0}) => {
   if (!side || !odd) {
     return 0
@@ -319,35 +359,8 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Match not found in database.' });
         }
 
-        const selection_ids = [];
-        const history = [];
-        match.matchRunners.map(runner => {
-          selection_ids.push(parseInt(runner.runnerId));
-        });
-        match.adminBetfairOdds?.map((runnerOdd) =>
-          runnerOdd.layingHistory?.map((tipHistory) => {
-            history.push({
-              selection_id : parseInt(runnerOdd.selectionId),
-              side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
-              odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
-              amount : parseInt(tipHistory.Ammount?.back ?? tipHistory.Ammount?.lay ?? 0),
-            });
-          })
-        );
-        const input = {
-          selection_ids: selection_ids,
-          history: history,
-        };
-        const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
-        const { data } = await axios.post(
-          apiUrl, 
-          input,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
-            },
-          }
-        );
+        const input = getNetProfitInput(match);
+        const data = getNetProfit({input: input});
 
         // Optional: You can filter or transform the data as needed
         const processedMatch = {
@@ -442,30 +455,45 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
         }
       });
     }
-
+    const input = getNetProfitInput(match);
     const runnerData = await Promise.all(marketData.runners.map(async (runner) => {
       const backAmount = await getAmount({ side: "Back", odd: runner?.ex?.availableToBack[0]?.price });
       const layAmount = await getAmount({ side: "Lay", odd: runner?.ex?.availableToLay[0]?.price });
+      const backNet = await getNetProfit(input, {
+        selection_id : parseInt(runner.selectionId),
+        side : "Back",
+        odd : parseFloat(runner?.ex?.availableToBack[0]?.price),
+        amount : parseInt(backAmount),
+      });
+      const layNet = await getNetProfit(input, {
+        selection_id : parseInt(runner.selectionId),
+        side : "Lay",
+        odd : parseFloat(runner?.ex?.availableToLay[0]?.price),
+        amount : parseInt(layAmount),
+      });
       return {
-      selectionId: runner.selectionId,
-      runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
-      lastPriceTraded: runner.lastPriceTraded || 0,
-      availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
-        price: back.price,
-        size: back.size,
-        amount: index === 0 ? backAmount : 0,
-      })) || [],
-      availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
-        price: lay.price,
-        size: lay.size,
-        amount: index === 0 ? layAmount : 0,
-      })) || [],
-      oddsHistory: [{
-        availableToBack: runner.ex?.availableToBack || [],
-        availableToLay: runner.ex?.availableToLay || [],
-        timestamp: new Date()
-      }]
-    }}));
+        selectionId: runner.selectionId,
+        runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
+        lastPriceTraded: runner.lastPriceTraded || 0,
+        availableToBack: runner.ex?.availableToBack?.map((back, index) => ({
+          price: back.price,
+          size: back.size,
+          amount: index === 0 ? backAmount : 0,
+          net: index === 0 ? backNet : null,
+        })) || [],
+        availableToLay: runner.ex?.availableToLay?.map((lay, index) => ({
+          price: lay.price,
+          size: lay.size,
+          amount: index === 0 ? layAmount : 0,
+          net: index === 0 ? layNet : null,
+        })) || [],
+        oddsHistory: [{
+          availableToBack: runner.ex?.availableToBack || [],
+          availableToLay: runner.ex?.availableToLay || [],
+          timestamp: new Date()
+        }]
+      }
+    }));
 
      match.betfairOdds = runnerData;
     if (!isFromCache && typeof match.save === "function") {
