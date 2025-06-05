@@ -50,20 +50,27 @@ const getNetProfitInput = (match) => {
 };
 
 const getNetProfit = async ({input, tip}) => {
-  if (tip) {
-    input.history.push(tip);
-  }
-  const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
-  const { data } = await axios.post(
-    apiUrl, 
-    input,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
-      },
+  try {
+    if (tip) {
+      input.history.push(tip);
     }
-  );
-  return data;
+    console.log(input);
+    console.log(tip);
+    const apiUrl = `${process.env.PLAYMATE_URL}netProfit`;
+    const { data } = await axios.post(
+      apiUrl, 
+      input,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PLAYMATE_TOKEN}`,
+        },
+      }
+    );
+    return data;
+  } catch (e) {
+    console.error(e.message);
+    return null;
+  }
 };
 
 const getAmount = async ({side, odd, investmentLimit = 0}) => {
@@ -87,6 +94,7 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
     );
     return response?.data?.amount || 0;
   } catch (e) {
+    console.error(e.message);
     return 0;
   }
 }
@@ -360,7 +368,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
         }
 
         const input = getNetProfitInput(match);
-        const data = getNetProfit({input: input});
+        const data = await getNetProfit({input: input});
 
         // Optional: You can filter or transform the data as needed
         const processedMatch = {
