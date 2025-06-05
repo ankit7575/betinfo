@@ -12,7 +12,6 @@ import ScoreboardCard from './sections/ScoreboardCard';
 import OpeningBalance from './sections/OpeningBalance';
 import IframeBox from './sections/IframeBox';
 import BalanceDisplay from './sections/BalanceDisplay';
-// import BetfairMarketTable from './sections/BetfairMarketTable'; // <-- REMOVED
 import LiveTipsTable from './sections/LiveTipsTable';
 
 import {
@@ -20,29 +19,11 @@ import {
   getUserMatchOddsAndInvestment,
   userAddInvestment,
   getScoreboardByEventId,
-  // getBetfairOddsForRunner, // <-- REMOVED
 } from '../actions/matchaction';
 import { redeemCoinForAllMatches } from '../actions/coinAction';
 import { loadUser } from '../actions/userAction';
 
 const sportId = 4;
-
-// Fallback scoreboard
-const fallbackScoreboard = {
-  title: 'Scoreboard',
-  team1: match?.matchRunners?.[0]?.runnerName || 'Team A',
-  team2: match?.matchRunners?.[1]?.runnerName || 'Team B',
-  score1: '0',
-  score2: '0',
-  wicket1: '0',
-  wicket2: '0',
-  ballsDone1: 0,
-  ballsDone2: 0,
-  target: 0,
-  required: '-',
-  recentBalls: [],
-  status: 'Match has not started yet or no live data available',
-};
 
 const ViewTip = () => {
   const dispatch = useDispatch();
@@ -58,21 +39,19 @@ const ViewTip = () => {
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [investmentLoading, setInvestmentLoading] = useState(false);
   const [transactionError, setTransactionError] = useState('');
-  const [latestOddsHistory, setLatestOddsHistory] = useState([]);
-  const [runnerOdds, setRunnerOdds] = useState([]);
   const [showCoinModal, setShowCoinModal] = useState(false);
   const [coinMessage, setCoinMessage] = useState('');
   const [redeemingCoin, setRedeemingCoin] = useState(false);
 
-    // Auto-refresh page only once per event
-    useEffect(() => {
-      if (!eventId) return;
-      const reloadKey = 'viewtipAutoReloaded_' + eventId;
-      if (!sessionStorage.getItem(reloadKey)) {
-        sessionStorage.setItem(reloadKey, 'true');
-        window.location.reload();
-      }
-    }, [eventId]);
+  // Auto-refresh page only once per event
+  useEffect(() => {
+    if (!eventId) return;
+    const reloadKey = 'viewtipAutoReloaded_' + eventId;
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+    }
+  }, [eventId]);
   // Redux State Selectors
   const {
     loading,
@@ -82,6 +61,23 @@ const ViewTip = () => {
     match,
   } = useSelector((state) => state.match || {});
   const { user, loading: userLoadingState } = useSelector((state) => state.user || {});
+
+  // Fallback scoreboard
+  const fallbackScoreboard = {
+    title: 'Scoreboard',
+    team1: match?.matchRunners?.[0]?.runnerName || 'Team A',
+    team2: match?.matchRunners?.[1]?.runnerName || 'Team B',
+    score1: '0',
+    score2: '0',
+    wicket1: '0',
+    wicket2: '0',
+    ballsDone1: 0,
+    ballsDone2: 0,
+    target: 0,
+    required: '-',
+    recentBalls: [],
+    status: 'Match has not started yet or no live data available',
+  };
 
   // --- Coin Logic ---
   const [now, setNow] = useState(new Date());
@@ -117,50 +113,6 @@ const ViewTip = () => {
     if (!user) dispatch(loadUser());
     fetchInitialData();
   }, [dispatch, user, fetchInitialData]);
-
-  // Last known good scoreboard
-  const [lastGoodScoreboard, setLastGoodScoreboard] = useState(fallbackScoreboard);
-  useEffect(() => {
-    if (!userId || !eventId) return;
-
-    socket.emit('join', userId);
-    socket.emit('requestUserOddsUpdate', { eventId, userId });
-
-    const handleUserOddsUpdated = (data) => {
-      if (data?.eventId !== eventId) return;
-      if (data?.success && data?.oddsHistory) {
-        setLatestOddsHistory(data.oddsHistory);
-      }
-    };
-
-    socket.on('userOddsUpdated', handleUserOddsUpdated);
-
-    return () => {
-      socket.emit('leave', userId);
-      socket.off('userOddsUpdated', handleUserOddsUpdated);
-    };
-  }, [userId, eventId]);
-
-  // Fetch Betfair runners (Market Table)
-  useEffect(() => {
-    const fetchAllRunnersOdds = async () => {
-      try {
-        const result = await dispatch(getBetfairOddsForRunner(eventId));
-        if (result?.payload?.runners) {
-          setRunnerOdds(result.payload.runners);
-        }
-      } catch (err) {
-        setRunnerOdds([]);
-      }
-    };
-    if (eventId) fetchAllRunnersOdds();
-  }, [dispatch, eventId]);
-  
-  useEffect(()=>{
-    if (scoreboard && scoreboard.team1 && scoreboard.team2) {
-      setLastGoodScoreboard(scoreboard);
-    }
-  }, [scoreboard]);
 
   // Investment submit handler
   const handleInvestmentSubmit = async (e) => {
@@ -206,21 +158,6 @@ const ViewTip = () => {
       setRedeemingCoin(false);
     }
   };
-
-  // Fallback tips for LiveTipsTable (on reload, before socket fires)
-  const getFallbackLatestTips = () => {
-    const odds = userOddsAndInvestment?.oddsHistory || userOddsAndInvestment?.userOdds || [];
-    return odds.map((item) => ({
-      runnerName: item.runnerName || 'Unknown',
-      odds: item.odds || { back: 0, lay: 0 },
-      Ammount: item.Ammount || { back: 0, lay: 0 },
-      Profit: item.Profit || { back: 0, lay: 0 },
-      expiresAt: item.expiresAt || undefined,
-    }));
-  };
-
-  const liveTipsToShow =
-    latestOddsHistory.length > 0 ? latestOddsHistory : getFallbackLatestTips();
 
   // Loading Spinner
   if (loading || userLoading || userLoadingState) {
@@ -337,36 +274,14 @@ const ViewTip = () => {
               <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                 <BalanceDisplay amount={userOddsAndInvestment?.openingbalance} />
               </div>
-              <div className="col-lg-12 col-md-12 col-sm-12">
-                <BetfairMarketTable
-                  matchData={{
-                    eventId,
-                    market: { runners: runnerOdds },
-                    matchRunners: match?.matchRunners || [],
-                  }}
-                  socket={socket}
-                />
-              </div>
               {/* Only show LiveTipsTable & TipHistoryTable if coin is redeemed for this event */}
               {alreadyRedeemedCoin && (
                 <>
-                <div className='col-lg-12 col-md-12 col-12' >
+                  <div className='col-lg-12 col-md-12 col-12' >
                     <LiveTipsTable
                       eventId={eventId}
-                      userId={userId}
-                      fallbackData={liveTipsToShow}
-                      socket={socket}
                     />
                   </div>
-                  <div className='col-lg-12 col-12 ' >
-                    <TipHistoryTable
-                      adminBetfairOdds={match?.adminBetfairOdds || []}
-                      adminOpeningBalance={match?.openingbalance || 200000}
-                      userOpeningBalance={userOddsAndInvestment?.openingbalance || 0}
-                      userId={userOddsAndInvestment?.userId}
-                      socket={socket}
-                    />
-                </div>
                 </>
               )}
             </div>

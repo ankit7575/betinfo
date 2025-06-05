@@ -128,14 +128,6 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
           <div className="pending-odds">{layItem.price}</div>
           <div className="pending-stake">{layItem.amount}</div>
         </td>
-        <td className="gap-2 text-center">
-          <span className={`text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white'}`}>
-            {netProfit?.net || 0} {netProfit?.net > 0 ? '▲' : netProfit?.net < 0 ? '▼' : ''}
-          </span>
-          <span className={`ml-2 text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white'}`}>
-            {netProfit?.percentage}
-          </span>
-        </td>
         <td className={`gap-2 text-center`}>
             <span className={`text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white' }`}>{ netProfit?.net || 0 } {netProfit?.net > 0 ? '▲' : netProfit?.net < 0 ? '▼' : '' }</span>
             <span className={`ml-2 text-base ${netProfit?.net > 0 ? 'text-green-600' : netProfit?.net < 0 ? 'text-red-600' : 'text-white' }`}>{ netProfit?.percentage }</span>

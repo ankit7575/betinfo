@@ -16,7 +16,7 @@ function getTeamNameBySelectionId(selectionId, matchRunners, fallback, index) {
   return found?.runnerName || fallback || `Runner ${index + 1}`;
 }
 
-const LiveTipsTable = ({ eventId }) => {
+const LiveTipsTable = ({ eventId, isAdmin = false }) => {
   const dispatch = useDispatch();
   const { match, loading } = useSelector((state) => state.match || {});
   const [runnerOdds, setRunnerOdds] = useState([]);
@@ -91,7 +91,7 @@ const LiveTipsTable = ({ eventId }) => {
 
   // Use matchRunners for all lookups
   const matchRunners = match?.matchRunners || [];
-
+  const latest = match?.adminBetfairOdds?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] ?? null;
   if (loading) {
     return (
       <div className="text-center my-4">
@@ -119,7 +119,7 @@ const LiveTipsTable = ({ eventId }) => {
       />
 
       {/* Tips Submission Form */}
-      <Form className='mt-4' onSubmit={handleSubmit}>
+      {isAdmin ? <Form className='mt-4' onSubmit={handleSubmit}>
         <Row className="mb-3">
           <Col>
             <Form.Group controlId="runner">
@@ -172,7 +172,7 @@ const LiveTipsTable = ({ eventId }) => {
         <Button className='w-32' variant="primary" type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit'}
         </Button>
-      </Form>
+      </Form> : ''}
 
       {/* Latest Tips Table */}
       <div className="latest-odds mt-4 live-tips-scroll">
@@ -187,14 +187,18 @@ const LiveTipsTable = ({ eventId }) => {
             </tr>
           </thead>
           <tbody>
-            {(match?.adminBetfairOdds || []).map((runnerOdds, idx) => (
-              <tr key={runnerOdds.selectionId ?? runnerOdds.runnerId}>
-                <td className="Runner">{getTeamNameBySelectionId(runnerOdds.selectionId ?? runnerOdds.runnerId, matchRunners, runnerOdds.runnerName, idx)}</td>
-                <td>{runnerOdds.odds?.back ? 'Back' : runnerOdds.odds?.lay ? 'Lay' : 'N/A'}</td>
-                <td>{runnerOdds.odds?.back ?? runnerOdds.odds?.lay ?? 'N/A'}</td>
-                <td>{runnerOdds.Ammount?.back ?? runnerOdds.Ammount?.lay ?? 'N/A'}</td>
-              </tr>
-            ))}
+             {latest ? (
+                <tr>
+                  <td>{latest.runnerName}</td>
+                  <td>{latest.odds?.back ? 'Back' : latest.odds?.lay ? 'Lay' : 'N/A'}</td>
+                  <td>{latest.odds?.back ?? latest.odds?.lay ?? 'N/A'}</td>
+                  <td>{latest.Ammount?.back ?? latest.Ammount?.lay ?? 'N/A'}</td>
+                </tr>
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center">No runner data.</td>
+                </tr>
+              )}
           </tbody>
         </table>
       </div>
