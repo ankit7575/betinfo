@@ -49,8 +49,9 @@ const getNetProfitInput = (match) => {
   return input;
 };
 
-const getNetProfit = async ({input, tip}) => {
+const getNetProfit = async ({match, tip}) => {
   try {
+    const input = getNetProfitInput(match);
     if (tip) {
       input.history.push(tip);
     }
@@ -64,7 +65,7 @@ const getNetProfit = async ({input, tip}) => {
         },
       }
     );
-    return data;
+    return data?.length === 2 ? data : null;
   } catch (e) {
     console.error(e.message);
     return null;
@@ -365,8 +366,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Match not found in database.' });
         }
 
-        const input = getNetProfitInput(match);
-        const data = await getNetProfit({input: input});
+        const data = await getNetProfit({match: match});
 
         // Optional: You can filter or transform the data as needed
         const processedMatch = {
@@ -461,17 +461,16 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
         }
       });
     }
-    const input = getNetProfitInput(match);
     const runnerData = await Promise.all(marketData.runners.map(async (runner) => {
       const backAmount = await getAmount({ side: "Back", odd: runner?.ex?.availableToBack[0]?.price });
       const layAmount = await getAmount({ side: "Lay", odd: runner?.ex?.availableToLay[0]?.price });
-      const backNet = await getNetProfit({input: input, tip: {
+      const backNet = await getNetProfit({match: match, tip: {
         selection_id : parseInt(runner.selectionId),
         side : "Back",
         odd : parseFloat(runner?.ex?.availableToBack[0]?.price),
         amount : parseInt(backAmount),
       }});
-      const layNet = await getNetProfit({input: input, tip: {
+      const layNet = await getNetProfit({match: match, tip: {
         selection_id : parseInt(runner.selectionId),
         side : "Lay",
         odd : parseFloat(runner?.ex?.availableToLay[0]?.price),
