@@ -74,6 +74,24 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
     return match?.runnerName || fallback || `Runner ${index + 1}`;
   };
 
+  const renderCurrentProfit = (net) => {
+    if (!net || net?.length !== 2) return;
+    return (
+      <table>
+        <tbody className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white border rounded shadow-lg p-3 z-50">
+          {net?.map(item =>(<tr key={item?.selection_id} className="text-gray-700 text-sm">
+            <td className='whitespace-nowrap'>
+              {getRunnerName(item?.selection_id )}
+            </td>
+            <td>
+              <div className={`whitespace-nowrap text-base ${item?.net > 0 ? 'text-green-600' : item?.net < 0 ? 'text-red-600' : '' }`}>{ item?.net || 0 } {item?.net > 0 ? '▲' : item?.net < 0 ? '▼' : '' } { item?.percentage }</div>
+            </td>
+          </tr>))}
+        </tbody>
+      </table>
+    );
+  };
+
   const renderRow = (runner, index) => {
     const runnerName = getRunnerName(runner.selectionId, runner.runnerName, index);
     const backItem = (runner.availableToBack || [])[0] || { price: 0, size: 0 };
@@ -81,7 +99,7 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
     const isBackHighlight = highlightMap[`${runner.selectionId}-back`];
     const isLayHighlight = highlightMap[`${runner.selectionId}-lay`];
     const netProfit = pnl?.find((net) => Number(net?.selection_id) === Number(runner.selectionId))
-
+    
     return (
       <tr key={runner.selectionId || runnerName}>
         <td className="runner-name-cell">{runnerName}</td>
@@ -90,7 +108,8 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
           side: 'Back',
           odd: backItem.price,
           amount: backItem.amount,
-        })} className={`cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
+        })} className={`relative group cell-odds cell-back ${isBackHighlight ? 'highlight' : ''}`}>
+          {renderCurrentProfit(backItem?.net)}
           <div className="pending-odds">{backItem.price}</div>
           <div className="pending-stake">{backItem.amount}</div>
         </td>
@@ -99,7 +118,8 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
           side: 'Lay',
           odd: layItem.price,
           amount: layItem.amount,
-        })} className={`cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
+        })} className={`relative group cell-odds cell-lay ${isLayHighlight ? 'highlight' : ''}`}>
+          {renderCurrentProfit(layItem?.net)}
           <div className="pending-odds">{layItem.price}</div>
           <div className="pending-stake">{layItem.amount}</div>
         </td>

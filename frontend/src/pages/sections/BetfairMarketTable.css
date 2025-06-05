@@ -92,7 +92,7 @@
 }
 
 .cell-odds:hover {
-  transform: scale(1.04);
+  /* transform: scale(1.04); */
   box-shadow: 0 0 5px #0ff7;
 }
 

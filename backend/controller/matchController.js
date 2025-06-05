@@ -30,7 +30,7 @@ const getNetProfitInput = (match) => {
   const selection_ids = [];
   const history = [];
   match?.matchRunners?.map(runner => {
-    selection_ids.push(parseInt(runner.runnerId));
+    selection_ids.push(parseInt(runner.runnerId ? runner.runnerId : runner.selectionId));
   });
   match?.adminBetfairOdds?.map((runnerOdd) =>
     runnerOdd.layingHistory?.map((tipHistory) => {

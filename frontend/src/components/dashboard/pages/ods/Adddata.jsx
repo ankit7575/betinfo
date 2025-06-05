@@ -117,7 +117,7 @@ const Adddata = () => {
     const matchData = match?.matchRunners?.find(r => r.selectionId === selectionId);
     return matchData?.runnerName || fallback || `Runner ${index + 1}`;
   };
-
+  const latest = match?.adminBetfairOdds?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] ?? null;
   return (
     <Layout userRole="admin">
       <Helmet>
@@ -202,14 +202,18 @@ const Adddata = () => {
               </tr>
             </thead>
             <tbody>
-              {match?.adminBetfairOdds?.map((runnerOdds) => (
-                <tr key={runnerOdds.selectionId}>
-                  <td>{runnerOdds.runnerName}</td>
-                  <td>{runnerOdds.odds?.back ? 'Back' : runnerOdds.odds?.lay ? 'Lay' : 'N/A'}</td>
-                  <td>{runnerOdds.odds?.back ?? runnerOdds.odds?.lay ?? 'N/A'}</td>
-                  <td>{runnerOdds.Ammount?.back ?? runnerOdds.Ammount?.lay ?? 'N/A'}</td>
+              {latest ? (
+                <tr>
+                  <td>{latest.runnerName}</td>
+                  <td>{latest.odds?.back ? 'Back' : latest.odds?.lay ? 'Lay' : 'N/A'}</td>
+                  <td>{latest.odds?.back ?? latest.odds?.lay ?? 'N/A'}</td>
+                  <td>{latest.Ammount?.back ?? latest.Ammount?.lay ?? 'N/A'}</td>
                 </tr>
-              ))}
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center">No runner data.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
