@@ -19,22 +19,41 @@ const setMatchInTempStore = (eventId, matchData) => {
   tempStore[eventId] = matchData;
 };
 
-const getNetProfitInput = (match) => {
+const getNetProfitInput = (match, userId) => {
   const selection_ids = [];
   const history = [];
   match?.matchRunners?.map(runner => {
     selection_ids.push(parseInt(runner.runnerId ? runner.runnerId : runner.selectionId));
   });
+  // Get user's last investment time
+  let openingBalance = 0;
+  if (userId) {
+    const investmentEntry = match?.userOpeningbalanceHistory?.filter(entry => entry?.userId?.toString() === userId)?.sort((a, b) => new Date(b?.date) - new Date(a?.date))[0] ?? null;
+    openingBalance = investmentEntry?.amount || 0;
+    
+    userOdds?.runners?.map((runnerOdd) =>
+      runnerOdd.layingHistory?.map((tipHistory) => {
+        history.push({
+          selection_id : parseInt(runnerOdd.selectionId),
+          side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
+          odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
+          amount : parseInt(tipHistory.Ammount?.back ?? tipHistory.Ammount?.lay ?? 0),
+        });
+      })
+    );
+  }
   match?.adminBetfairOdds?.map((runnerOdd) =>
     runnerOdd.layingHistory?.map((tipHistory) => {
+      const amount = userId ? (parseInt(tipHistory.Ammount?.back ?? tipHistory.Ammount?.lay ?? 0) * openingBalance)/ match?.openingbalance || 200000  : parseInt(tipHistory.Ammount?.back ?? tipHistory.Ammount?.lay ?? 0);
       history.push({
         selection_id : parseInt(runnerOdd.selectionId),
         side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
         odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
-        amount : parseInt(tipHistory.Ammount?.back ?? tipHistory.Ammount?.lay ?? 0),
+        amount : amount,
       });
     })
   );
+  
   const input = {
     selection_ids: selection_ids,
     history: history,
@@ -42,9 +61,9 @@ const getNetProfitInput = (match) => {
   return input;
 };
 
-const getNetProfit = async ({match, tip}) => {
+const getNetProfit = async ({match, tip, userId}) => {
   try {
-    const input = getNetProfitInput(match);
+    const input = getNetProfitInput(match, userId);
     if (tip) {
       input.history.push(tip);
     }
@@ -485,8 +504,8 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
     let match = getMatchFromTempStore(eventId);
     let isFromCache = true;
 
+    match = await Match.findOne({ eventId });
     if (!match) {
-      match = await Match.findOne({ eventId });
       if (!match) return;
       isFromCache = false;
     }
@@ -540,13 +559,13 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
         side : "Back",
         odd : parseFloat(runner?.ex?.availableToBack[0]?.price),
         amount : parseInt(backAmount),
-      }});
+      }, userId: userId});
       const layNet = await getNetProfit({match: match, tip: {
         selection_id : parseInt(runner.selectionId),
         side : "Lay",
         odd : parseFloat(runner?.ex?.availableToLay[0]?.price),
         amount : parseInt(layAmount),
-      }});
+      }, userId: userId});
       return {
         selectionId: runner.selectionId,
         runnerName: runnerNameMap[runner.selectionId?.toString()] || `Runner ${runner.selectionId}`,
@@ -610,6 +629,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
 // ✅ Get Match By ID from MongoDB and store in tempStore
 const getMatchById = catchAsyncErrors(async (req, res, next) => {
   const { eventId } = req.params;
+  const { userId } = req.query;
 
   try {
     const match = await Match.findOne({ eventId });
@@ -618,7 +638,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Match not found in database.' });
     }
 
-    const data = await getNetProfit({match: match});
+    const data = await getNetProfit({match: match, userId: userId});
 
     // Optional: You can filter or transform the data as needed
     const processedMatch = {
@@ -637,7 +657,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
       })),
       markets: match.markets,
       adminBetfairOdds: match.adminBetfairOdds,
-      userOpeningbalanceHistory: match?.userOpeningbalanceHistory,
+      userOwnOdds: match?.userOwnOdds.find(u => u.userId === userId),
       betfairOdds: match.betfairOdds,
       scoreData: match.scoreData,
       netProfit: data ?? [],
@@ -859,7 +879,7 @@ function sanitizeOdds(oddsArr) {
 const addAdminBetfairOdds = catchAsyncErrors(async (req, res, next) => {
   const io = req.app.get("io");
   const { eventId, selectionId } = req.params;
-  const { odds, Ammount, Profit } = req.body;
+  const { odds, Ammount, Profit, userId, type } = req.body;
 
   const match = await Match.findOne({ eventId });
   if (!match) return res.status(404).json({ message: "Match not found" });
@@ -870,30 +890,60 @@ const addAdminBetfairOdds = catchAsyncErrors(async (req, res, next) => {
   const matchRunner = match.matchRunners.find(r => r.runnerId === String(selectionId));
   const runnerName = matchRunner ? matchRunner.runnerName : "Unknown Runner";
 
-  let existingOdds = match.adminBetfairOdds.find(o => o.selectionId === Number(selectionId));
-  const layingEntry = {
-    odds,
-    Ammount,
-    Profit,
-    timestamp: new Date(),
-  };
-
-  if (!existingOdds) {
-    match.adminBetfairOdds.push({
-      selectionId: Number(selectionId),
-      runnerName,
+  if (type === 'user') {
+    const layingEntry = {
+      odds,
+      Ammount,
+      timestamp: new Date(),
+    };
+    const userOwnOdds = match.userOwnOdds.find(o => o.userId === userId);
+    if (!userOwnOdds) {
+      match.userOwnOdds.push({
+        userId: userId,
+        runners: [{
+          selectionId: Number(selectionId),
+          runnerName: runnerName,
+          layingHistory: [layingEntry],
+        }],
+      });
+    } else {
+      const runner = userOwnOdds?.runners?.find(o => Number(o.selectionId) === Number(selectionId))
+      if (!runner) {
+        userOwnOdds.runners = [{
+          selectionId: Number(selectionId),
+          runnerName: runnerName,
+          layingHistory: [layingEntry],
+        }];
+      } else {
+        runner.layingHistory.push(layingEntry);
+      }
+    }
+  } else {
+    let existingOdds = match.adminBetfairOdds.find(o => o.selectionId === Number(selectionId));
+    const layingEntry = {
       odds,
       Ammount,
       Profit,
-      createdAt: new Date(),
-      layingHistory: [layingEntry],
-    });
-  } else {
-    existingOdds.odds = odds;
-    existingOdds.Ammount = Ammount;
-    existingOdds.Profit = Profit;
-    existingOdds.createdAt = new Date();
-    existingOdds.layingHistory.push(layingEntry);
+      timestamp: new Date(),
+    };
+    
+    if (!existingOdds) {
+      match.adminBetfairOdds.push({
+        selectionId: Number(selectionId),
+        runnerName,
+        odds,
+        Ammount,
+        Profit,
+        createdAt: new Date(),
+        layingHistory: [layingEntry],
+      });
+    } else {
+      existingOdds.odds = odds;
+      existingOdds.Ammount = Ammount;
+      existingOdds.Profit = Profit;
+      existingOdds.createdAt = new Date();
+      existingOdds.layingHistory.push(layingEntry);
+    }
   }
 
   // Clear old user odds for this match

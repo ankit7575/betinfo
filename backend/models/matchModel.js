@@ -45,6 +45,16 @@ const adminBetfairOddsSchema = new mongoose.Schema({
   layingHistory: [adminOddsHistorySchema]
 }, { _id: false });
 
+// User own odds for each runner
+const userOwnOddsSchema = new mongoose.Schema({
+  userId: {type: String, required: true},
+  runners: [{
+    selectionId: { type: Number, required: true },
+    runnerName: { type: String, required: true },
+    layingHistory: [adminOddsHistorySchema]
+  }],
+}, { _id: false });
+
 // User-specific odds snapshot history (per update)
 const userBetfairOddsHistorySchema = new mongoose.Schema({
   odds: {
@@ -155,6 +165,7 @@ const matchSchema = new mongoose.Schema({
 
   // --- Odds Data ---
   adminBetfairOdds: [adminBetfairOddsSchema], // Admin-defined
+  userOwnOdds: [userOwnOddsSchema],           // User-Own_dds
   betfairOdds: [runnerOddsSchema],            // Live odds feed
   userBetfairOdds: [userBetfairOddsSchema],   // User-calculated
 
