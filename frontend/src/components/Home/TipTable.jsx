@@ -1,50 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { getMatches, getBetfairOddsForRunner } from '../../actions/matchaction';
+import { useNavigate } from 'react-router-dom'; // <-- Import useNavigate
+import { getMatches } from '../../actions/matchaction';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './TipTable.css';
 import SelectedMatchTable from './SelectedMatchTable';
-import socket from '../../socket';
 
 const TipTable = ({ sportId = 4 }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // <-- Use navigate
   const { loading, error, matches = [] } = useSelector((state) => state.match || {});
   const { user } = useSelector((state) => state.user || {});
   const [searchTerm, setSearchTerm] = useState('');
-  const [liveOdds, setLiveOdds] = useState({}); // eventId -> [runners]
 
-  // Load matches on mount
   useEffect(() => {
     dispatch(getMatches(sportId));
   }, [dispatch, sportId]);
 
-  // Start odds stream for all visible matches (once per match)
-  useEffect(() => {
-    matches.forEach(match => {
-      dispatch(getBetfairOddsForRunner(match.eventId));
-      socket.emit('requestOddsUpdate', { eventId: match.eventId });
-    });
-    // eslint-disable-next-line
-  }, [matches]);
+  const filteredMatches = matches.filter(
+    match =>
+      match.selected &&
+      Array.isArray(match.matchRunners) &&
+      match.matchRunners.length === 2 &&
+      Array.isArray(match.markets) &&
+      match.markets.length > 0 &&
+      match.openDate &&
+      !isNaN(new Date(match.openDate))
+  );
 
-  // Listen for live odds on socket, update state
-  useEffect(() => {
-    const handleOddsUpdate = (data) => {
-      if (!data?.eventId || !data?.odds?.runners) return;
-      setLiveOdds(prev => ({
-        ...prev,
-        [data.eventId]: data.odds.runners,
-      }));
-    };
-    socket.on('betfair_odds_update', handleOddsUpdate);
-    return () => {
-      socket.off('betfair_odds_update', handleOddsUpdate);
-    };
-  }, []);
-
-  // Date helpers
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
@@ -54,11 +37,15 @@ const TipTable = ({ sportId = 4 }) => {
   const isTomorrow = (date) => date >= tomorrowStart && date <= tomorrowEnd;
 
   const normalize = (str) =>
-    (str || '').toString().toLowerCase().replace(/[\s-]+/g, '');
+    (str || '')
+      .toString()
+      .toLowerCase()
+      .replace(/[\s-]+/g, '');
 
   const searchFilter = (match) => {
     if (!searchTerm) return true;
     const term = normalize(searchTerm);
+
     const teamNames = match.eventName ||
       (Array.isArray(match.matchRunners)
         ? match.matchRunners.map((r) => r.runnerName).join(' vs ')
@@ -70,15 +57,12 @@ const TipTable = ({ sportId = 4 }) => {
     );
   };
 
-  // Only apply search and date filter (all other checks are done in backend)
-  const searchedMatches = matches.filter(searchFilter);
-
-  const todayMatches = searchedMatches
-    .filter(match => isToday(new Date(match.openDate)))
+  const todayMatches = filteredMatches
+    .filter(match => isToday(new Date(match.openDate)) && searchFilter(match))
     .sort((a, b) => new Date(a.openDate) - new Date(b.openDate));
 
-  const tomorrowMatches = searchedMatches
-    .filter(match => isTomorrow(new Date(match.openDate)))
+  const tomorrowMatches = filteredMatches
+    .filter(match => isTomorrow(new Date(match.openDate)) && searchFilter(match))
     .sort((a, b) => new Date(a.openDate) - new Date(b.openDate));
 
   const formatMatchTime = (openDate) => {
@@ -93,49 +77,18 @@ const TipTable = ({ sportId = 4 }) => {
       .padStart(2, '0')}-${d.getFullYear()}`;
   };
 
+  // Use navigate instead of window.open
   const handleViewTip = (eventId, markets) => {
     const matchOddsMarket = markets?.find((m) => m.marketName === 'Match Odds');
     const matchOddsMarketId = matchOddsMarket?.marketId || '';
     navigate(`/viewtip?eventId=${eventId}&marketId=${matchOddsMarketId}`);
   };
 
-  // Odds formatter: Show runner name, Back and Lay as colored badges
-  const OddsDisplay = ({ odds }) => {
-    if (!Array.isArray(odds) || odds.length === 0) {
-      return <span style={{ color: "#888" }}>N/A</span>;
-    }
-    return (
-      <div>
-        {odds.map((runner, i) => (
-          <div key={runner.selectionId || i} style={{ marginBottom: 3 }}>
-            <span style={{
-              background: '#73bbee',
-              color: '#13344c',
-              fontWeight: 700,
-              borderRadius: 6,
-              padding: '2px 10px',
-              marginRight: 8,
-              display: 'inline-block'
-            }}>
-              Back {runner.availableToBack?.[0]?.price || "N/A"}
-            </span>
-            <span style={{
-              background: '#faa9bc',
-              color: '#731c36',
-              fontWeight: 700,
-              borderRadius: 6,
-              padding: '2px 10px',
-              display: 'inline-block'
-            }}>
-              Lay {runner.availableToLay?.[0]?.price || "N/A"}
-            </span>
-          </div>
-        ))}
-      </div>
+  const shouldShowAdminStatus = (matchesToShow) =>
+    matchesToShow.some(
+      (match) => match.adminStatus && match.adminStatus.trim() && match.adminStatus.trim().toLowerCase() !== 'normal'
     );
-  };
 
-  // Table rendering (desktop + mobile)
   const renderMatches = (matchesToShow, dayLabel) => {
     if (!matchesToShow.length) {
       return (
@@ -144,9 +97,10 @@ const TipTable = ({ sportId = 4 }) => {
         </div>
       );
     }
+    const showAdminStatus = shouldShowAdminStatus(matchesToShow);
     return (
       <>
-        {/* --- Desktop Table --- */}
+        {/* Desktop Table */}
         <div className="table-responsive soccer-table-desktop">
           <table className="table table-bordered table-hover glow-border">
             <thead className="table-dark">
@@ -156,25 +110,21 @@ const TipTable = ({ sportId = 4 }) => {
                 <th>Match Time</th>
                 <th>Status</th>
                 <th>Competition</th>
-                <th>Back/Lay</th>
+                {showAdminStatus && <th>Pitch Status</th>}
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {matchesToShow.map((match, index) => {
-                // Display each team on separate lines
-                const teamNames = Array.isArray(match.matchRunners)
-                  ? match.matchRunners.map((r, idx) => (
-                    <span key={r.selectionId || idx}>
-                      {r.runnerName}
-                      {idx < match.matchRunners.length - 1 && <br />}
-                    </span>
-                  ))
-                  : match.eventName || 'N/A';
+                const teamNames =
+                  match.eventName ||
+                  (Array.isArray(match.matchRunners)
+                    ? match.matchRunners.map((r) => r.runnerName).join(' vs ')
+                    : 'N/A');
                 const eventId = match.eventId;
+                const adminStatus = match.adminStatus && match.adminStatus.trim();
                 const matchDateObj = new Date(match.openDate);
                 const isLive = matchDateObj <= now;
-                const odds = liveOdds[eventId];
                 return (
                   <tr key={eventId || index}>
                     <td>{teamNames}</td>
@@ -192,9 +142,15 @@ const TipTable = ({ sportId = 4 }) => {
                       )}
                     </td>
                     <td>{match.competitionName || 'N/A'}</td>
-                    <td>
-                      <OddsDisplay odds={odds} />
-                    </td>
+                    {showAdminStatus && (
+                      <td>
+                        {adminStatus && adminStatus.toLowerCase() !== 'normal' ? (
+                          <span className="badge bg-info text-dark">{adminStatus}</span>
+                        ) : (
+                          ''
+                        )}
+                      </td>
+                    )}
                     <td>
                       <button
                         className="btn btn-primary view-tip"
@@ -209,17 +165,18 @@ const TipTable = ({ sportId = 4 }) => {
             </tbody>
           </table>
         </div>
-        {/* --- Mobile: Card style --- */}
+        {/* Mobile Version: Cards */}
         <div className="soccer-table-mobile">
           {matchesToShow.map((match, index) => {
             const teamNames =
-              Array.isArray(match.matchRunners)
+              match.eventName ||
+              (Array.isArray(match.matchRunners)
                 ? match.matchRunners.map((r) => r.runnerName).join(' vs ')
-                : match.eventName || 'N/A';
+                : 'N/A');
             const eventId = match.eventId;
+            const adminStatus = match.adminStatus && match.adminStatus.trim();
             const matchDateObj = new Date(match.openDate);
             const isLive = matchDateObj <= now;
-            const odds = liveOdds[eventId];
             return (
               <div className="soccer-card" key={eventId || index}>
                 <div className="soccer-card-header">
@@ -247,10 +204,12 @@ const TipTable = ({ sportId = 4 }) => {
                     )}
                   </span>
                 </div>
-                <div className="soccer-card-row">
-                  <span className="soccer-label">Back/Lay:</span>
-                  <OddsDisplay odds={odds} />
-                </div>
+                {showAdminStatus && adminStatus && adminStatus.toLowerCase() !== 'normal' && (
+                  <div className="soccer-card-row">
+                    <span className="soccer-label">Pitch Status:</span>
+                    <span className="badge bg-info text-dark">{adminStatus}</span>
+                  </div>
+                )}
                 <div className="soccer-card-row soccer-card-action">
                   <button
                     className="btn btn-primary view-tip"
@@ -274,6 +233,7 @@ const TipTable = ({ sportId = 4 }) => {
     <div className="container-fluid">
       <div className="p-5 mt-4 pt-1">
         <h1 className="mb-4 white">Cricket Match Tips</h1>
+        {/* --- Modern Search Filter --- */}
         <div className="mb-4 search-box-dark">
           <input
             className="form-control form-control-lg search-dark-input"
@@ -283,7 +243,9 @@ const TipTable = ({ sportId = 4 }) => {
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
+        {/* Selected Matches Table */}
         <SelectedMatchTable matches={matches} user={user} now={now} />
+        {/* --- Today Matches --- */}
         <div className="match-day-section mb-5">
           <div className="match-day-title mb-3">
             <span className="badge bg-info text-dark" style={{ fontSize: '1.13rem', padding: '7px 24px', borderRadius: '16px', letterSpacing: 1 }}>
@@ -292,6 +254,7 @@ const TipTable = ({ sportId = 4 }) => {
           </div>
           <div className="match-day-box scroll-match-list">{renderMatches(todayMatches, "Today")}</div>
         </div>
+        {/* --- Tomorrow Matches --- */}
         <div className="match-day-section mb-5">
           <div className="match-day-title mb-3">
             <span className="badge bg-info text-dark" style={{ fontSize: '1.13rem', padding: '7px 24px', borderRadius: '16px', letterSpacing: 1 }}>
