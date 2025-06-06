@@ -74,7 +74,7 @@ const getAmount = async ({side, odd, investmentLimit = 0}) => {
     const response = await axios.post(
       apiUrl, 
       {
-        investmentLimit: parseInt(investmentLimit),
+        investment_limit: parseInt(investmentLimit),
         side: side,
         odd: parseFloat(odd),
       },
@@ -473,7 +473,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
   const io = req.app.get("io");
 
   if (!eventId) return next(new ErrorHandler("Event ID is required", 400));
-  console.log("📊 Initial Betfair odds request received for eventId:", eventId);
+  console.log("📊 Initial Betfair odds request received for eventId:", eventId, "User Id:", userId);
 
   // Clear any previous interval to avoid duplicates
   if (intervalTimers[eventId]?.oddsInterval) {
@@ -524,10 +524,17 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
+    // Get user's last investment time
+    let openingBalance = 0;
+    if (userId) {
+      const investmentEntry = match?.userOpeningbalanceHistory?.filter(entry => entry?.userId?.toString() === userId)?.sort((a, b) => new Date(b?.date) - new Date(a?.date))[0] ?? null;
+      openingBalance = investmentEntry?.amount || 0;
+    }
+
     // Enrich runners: always set team name
     const runnerData = await Promise.all(marketData.runners.map(async (runner) => {
-      const backAmount = await getAmount({ side: "Back", odd: runner?.ex?.availableToBack[0]?.price });
-      const layAmount = await getAmount({ side: "Lay", odd: runner?.ex?.availableToLay[0]?.price });
+      const backAmount = await getAmount({ side: "Back", odd: runner?.ex?.availableToBack[0]?.price, investmentLimit: openingBalance });
+      const layAmount = await getAmount({ side: "Lay", odd: runner?.ex?.availableToLay[0]?.price, investmentLimit: openingBalance });
       const backNet = await getNetProfit({match: match, tip: {
         selection_id : parseInt(runner.selectionId),
         side : "Back",
@@ -630,6 +637,7 @@ const getMatchById = catchAsyncErrors(async (req, res, next) => {
       })),
       markets: match.markets,
       adminBetfairOdds: match.adminBetfairOdds,
+      userOpeningbalanceHistory: match?.userOpeningbalanceHistory,
       betfairOdds: match.betfairOdds,
       scoreData: match.scoreData,
       netProfit: data ?? [],
