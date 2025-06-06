@@ -469,7 +469,7 @@ const getSoccerMatches = catchAsyncErrors(async (req, res, next) => {
 
 // Make sure getAmount is defined above this controller!
 const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
-  const { eventId } = req.params;
+  const { eventId, userId } = req.params;
   const io = req.app.get("io");
 
   if (!eventId) return next(new ErrorHandler("Event ID is required", 400));
@@ -572,6 +572,7 @@ const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
     if (io) {
       io.emit("betfair_odds_update", {
         eventId,
+        userId,
         odds: {
           marketId,
           marketName: "Match Odds",

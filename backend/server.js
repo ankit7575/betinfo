@@ -103,11 +103,11 @@ io.on("connection", (socket) => {
   });
 
   // General odds update for event (admin push or fallback)
-  socket.on("requestOddsUpdate", async ({ eventId }) => {
+  socket.on("requestOddsUpdate", async ({ eventId, userId }) => {
     console.log(`📩 Odds update requested for eventId: ${eventId}`);
     try {
       if (!eventId) throw new Error("eventId is required");
-      const req = { params: { eventId }, app };
+      const req = { params: { eventId, userId }, app };
       const res = { status: () => ({ json: () => {} }) };
       const next = (err) => err && console.error("Odds Error:", err.message);
       await getBetfairOddsForRunner(req, res, next);
