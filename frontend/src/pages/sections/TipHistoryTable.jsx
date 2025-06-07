@@ -132,7 +132,7 @@ const TipHistoryTable = ({
         }
       }
     }
-  }, [adminBetfairOdds, userOwnOdds, flattenHistory]);
+  }, [adminBetfairOdds, setLatestTip, userOwnOdds, flattenHistory]);
 
   useEffect(() => {
     if (!socket) return;
@@ -158,7 +158,7 @@ const TipHistoryTable = ({
     };
     socket.on('admin_tip_update', handleTipUpdate);
     return () => socket.off('admin_tip_update', handleTipUpdate);
-  }, [flattenHistory, socket]);
+  }, [flattenHistory, setLatestTip, eventId, socket]);
 
   return (
     <div className="card shadow-sm mb-4">

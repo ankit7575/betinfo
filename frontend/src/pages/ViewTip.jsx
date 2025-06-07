@@ -107,7 +107,7 @@ const ViewTip = () => {
     } else {
       navigate('/');
     }
-  }, [dispatch, eventId, navigate]);
+  }, [dispatch, eventId, navigate, userOddsAndInvestment?.userId]);
 
   useEffect(() => {
     if (!user) dispatch(loadUser());

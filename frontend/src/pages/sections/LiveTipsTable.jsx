@@ -56,7 +56,7 @@ const LiveTipsTable = ({ eventId }) => {
 
   // Use matchRunners for all lookups
   const matchRunners = match?.matchRunners || [];
-  const latest = match?.adminBetfairOdds?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] ?? null;
+
   if (loading) {
     return (
       <div className="text-center my-4">
