@@ -30,8 +30,8 @@ const getNetProfitInput = (match, userId) => {
   if (userId) {
     const investmentEntry = match?.userOpeningbalanceHistory?.filter(entry => entry?.userId?.toString() === userId)?.sort((a, b) => new Date(b?.date) - new Date(a?.date))[0] ?? null;
     openingBalance = investmentEntry?.amount || 0;
-    
-    match.userOwnOdds?.runners?.map((runnerOdd) =>
+    const userOwnOdds = match.userOwnOdds.find(o => o.userId === userId);
+    userOwnOdds?.runners?.map((runnerOdd) =>
       runnerOdd.layingHistory?.map((tipHistory) => {
         history.push({
           selection_id : parseInt(runnerOdd.selectionId),
