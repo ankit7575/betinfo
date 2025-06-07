@@ -114,6 +114,14 @@ const ViewTip = () => {
     fetchInitialData();
   }, [dispatch, user, fetchInitialData]);
 
+  // Last known good scoreboard
+  const [lastGoodScoreboard, setLastGoodScoreboard] = useState(fallbackScoreboard);
+  useEffect(() => {
+    if (scoreboard && scoreboard.team1 && scoreboard.team2) {
+      setLastGoodScoreboard(scoreboard);
+    }
+  }, [scoreboard]);
+
   // Investment submit handler
   const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
@@ -289,7 +297,7 @@ const ViewTip = () => {
           {/* Sidebar Column */}
           <div className="col-lg-4 col-md-4 col-sm-4 col-12">
             <ScoreboardCard
-              scoreboard={scoreboard?.team1 ? scoreboard : fallbackScoreboard}
+              scoreboard={lastGoodScoreboard}
               socket={socket}
             />
             <IframeBox
