@@ -30,7 +30,7 @@ const getNetProfitInput = (match, userId) => {
   if (userId) {
     const investmentEntry = match?.userOpeningbalanceHistory?.filter(entry => entry?.userId?.toString() === userId)?.sort((a, b) => new Date(b?.date) - new Date(a?.date))[0] ?? null;
     openingBalance = investmentEntry?.amount || 0;
-    const userOwnOdds = match.userOwnOdds.find(o => o.userId === userId);
+    const userOwnOdds = match?.userOwnOdds?.find(o => o.userId === userId);
     userOwnOdds?.runners?.map((runnerOdd) =>
       runnerOdd.layingHistory?.map((tipHistory) => {
         history.push({
@@ -49,7 +49,7 @@ const getNetProfitInput = (match, userId) => {
         selection_id : parseInt(runnerOdd.selectionId),
         side : tipHistory.odds?.back ? "Back" : tipHistory.odds?.lay ? "Lay" : "",
         odd : parseFloat(tipHistory.odds?.back ?? tipHistory.odds?.lay ?? 0),
-        amount : amount,
+        amount : parseInt(amount),
       });
     })
   );
