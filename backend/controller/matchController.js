@@ -31,7 +31,7 @@ const getNetProfitInput = (match, userId) => {
     const investmentEntry = match?.userOpeningbalanceHistory?.filter(entry => entry?.userId?.toString() === userId)?.sort((a, b) => new Date(b?.date) - new Date(a?.date))[0] ?? null;
     openingBalance = investmentEntry?.amount || 0;
     
-    userOdds?.runners?.map((runnerOdd) =>
+    match.userOwnOdds?.runners?.map((runnerOdd) =>
       runnerOdd.layingHistory?.map((tipHistory) => {
         history.push({
           selection_id : parseInt(runnerOdd.selectionId),
@@ -488,7 +488,8 @@ const getSoccerMatches = catchAsyncErrors(async (req, res, next) => {
 
 // Make sure getAmount is defined above this controller!
 const getBetfairOddsForRunner = catchAsyncErrors(async (req, res, next) => {
-  const { eventId, userId } = req.params;
+  let { eventId, userId } = req.params;
+  userId = req.query?.userId;
   const io = req.app.get("io");
 
   if (!eventId) return next(new ErrorHandler("Event ID is required", 400));
@@ -1007,6 +1008,13 @@ const addAdminBetfairOdds = catchAsyncErrors(async (req, res, next) => {
   io.emit("admin_tip_update", {
     eventId,
     adminBetfairOdds: match.adminBetfairOdds,
+    layingEntry: {
+      runnerName,
+      side: odds?.back ? 'Back' : 'Lay',
+      odd: odds?.back ? odds?.back : odds?.lay,
+      amount: Ammount?.back ? Ammount?.back : Ammount?.lay,
+      timestamp: new Date(),
+    },
   });
 
   res.status(200).json({

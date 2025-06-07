@@ -70,7 +70,7 @@ const ScoreboardCard = ({ scoreboard: initialScoreboard, socket }) => {
 
 
   // ---- Debug!
-  console.log("Debug recentBalls", recentBalls, "raw", liveScoreboard.recentBalls);
+  // console.log("Debug recentBalls", recentBalls, "raw", liveScoreboard.recentBalls);
 
   const overs1 = (Number(liveScoreboard.ballsDone1 || 0) / 6).toFixed(1);
 
@@ -89,7 +89,7 @@ const ScoreboardCard = ({ scoreboard: initialScoreboard, socket }) => {
         <div className={socketConnected ? "fancy-live-dot" : "fancy-offline-dot"} />
         <span className="fancy-live-text mini">{socketConnected ? "LIVE" : "OFF"}</span>
       </div>
-      <div className="fancy-score-title mini">{liveScoreboard.title || ''}</div>
+      {/* <div className="fancy-score-title mini">{liveScoreboard.title || ''}</div> */}
       <div className="fancy-score-teams mini">
         <span className="fancy-teamname">{liveScoreboard.team1 || '-'}</span>
         <span className="fancy-score">

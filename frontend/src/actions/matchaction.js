@@ -130,10 +130,13 @@ export const updateMatchAdminStatus = ({ eventId, adminStatus }) => async (dispa
 };
 
 // ✅ 2. Get Match by ID
-export const getMatchById = (eventId) => async (dispatch) => {
+export const getMatchById = (eventId, userId) => async (dispatch) => {
   try {
     dispatch({ type: GET_MATCH_BY_ID_REQUEST });
-    const { data } = await axios.get(`${API_URL}/match/${eventId}`, getAuthConfig());
+    const { data } = await axios.get(`${API_URL}/match/${eventId}`, {
+      ...getAuthConfig(),
+      params: { userId }
+    });
     dispatch({ type: GET_MATCH_BY_ID_SUCCESS, payload: data?.data || {} });
   } catch (error) {
     dispatch({ type: GET_MATCH_BY_ID_FAIL, payload: getErrorMessage(error) });
@@ -141,12 +144,15 @@ export const getMatchById = (eventId) => async (dispatch) => {
 };
 
 // ✅ 1. Trigger Betfair Odds Streaming
-export const getBetfairOddsForRunner = (eventId) => async (dispatch) => {
+export const getBetfairOddsForRunner = (eventId, userId) => async (dispatch) => {
   try {
     dispatch({ type: GET_BETFAIR_ODDS_FOR_RUNNER_REQUEST });
 
     // 🔁 Just trigger backend to start 0.5s emit loop
-    const { data } = await axios.get(`${API_URL}/betfair-odds/${eventId}`, getAuthConfig());
+    const { data } = await axios.get(`${API_URL}/betfair-odds/${eventId}`, {
+      ...getAuthConfig(),
+      params: { userId }
+    });
 
     dispatch({
       type: GET_BETFAIR_ODDS_FOR_RUNNER_SUCCESS,

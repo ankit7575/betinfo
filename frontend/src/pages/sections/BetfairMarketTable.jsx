@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import './BetfairMarketTable.css';
 
 // Accept socket as a prop!
-const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }) => {
+const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket, userId, type = '' }) => {
   if (!handleSubmit) handleSubmit = () => {};
   const [searchParams] = useSearchParams();
   const currentEventId = searchParams.get('eventId') ?? matchData?.eventId;
@@ -29,7 +29,7 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
     socket.on('disconnect', handleDisconnect);
 
     const handleOddsUpdate = (data) => {
-      if (data?.eventId !== currentEventId || !data?.odds?.runners) return;
+      if (data?.eventId !== currentEventId || !data?.odds?.runners || (type === 'user' && data?.userId !== userId) || (!type && data?.userId)) return;
       const updated = data.odds.runners;
       const newHighlights = {};
       setLiveRunners(prev =>
@@ -54,7 +54,7 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
 
     const interval = setInterval(() => {
       if (socketConnected && currentEventId) {
-        socket.emit('requestOddsUpdate', { eventId: currentEventId });
+        socket.emit('requestOddsUpdate', { eventId: currentEventId, userId: userId });
       }
     }, 500);
 
@@ -64,7 +64,7 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
       socket.off('betfair_odds_update', handleOddsUpdate);
       clearInterval(interval);
     };
-  }, [currentEventId, socketConnected, socket]);
+  }, [currentEventId, socketConnected, socket, userId, type]);
 
   // Helper: Get the correct team name for a selectionId
   const getRunnerName = (selectionId, fallback, index) => {
@@ -76,8 +76,9 @@ const BetfairMarketTable = ({ matchData, handleSubmit = null, pnl = [], socket }
     return found?.runnerName || fallback || `Runner ${index + 1}`;
   };
 
-  const renderCurrentProfit = (net) => {
-    if (!net || net?.length !== 2) return;
+  const renderCurrentProfit = (pnl) => {
+    if (!pnl || pnl?.length !== 2) return;
+    const net = pnl.sort((a, b) =>  a.selection_id - b.selection_id) ?? null;
     return (
       <table>
         <tbody className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white border rounded shadow-lg p-3 z-50">

@@ -101,7 +101,7 @@ const ViewTip = () => {
   // Fetch initial data on mount
   const fetchInitialData = useCallback(() => {
     if (eventId) {
-      dispatch(getMatchById(eventId));
+      dispatch(getMatchById(eventId, userOddsAndInvestment?.userId));
       dispatch(getUserMatchOddsAndInvestment(eventId));
       dispatch(getScoreboardByEventId(eventId));
     } else {
